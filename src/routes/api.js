@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const { isAdminAuthenticated } = require('../middleware/auth');
 const { requireSiteUser } = require('../middleware/api-auth');
+const { requirePro } = require('./billing');
 
 router.get('/categories', async (req, res, next) => {
   try {
@@ -301,7 +302,7 @@ router.get('/course/:id/wishlist-status', requireSiteUser, async (req, res, next
 
 // ====== CERTIFICATES ======
 
-router.get('/course/:id/certificate', requireSiteUser, async (req, res, next) => {
+router.get('/course/:id/certificate', requireSiteUser, requirePro, async (req, res, next) => {
   try {
     const courseId = req.params.id;
     const userId = req.session.siteUser.id;

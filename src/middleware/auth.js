@@ -22,6 +22,7 @@ function setAdminLocals(req, res, next) {
   res.locals.isAdminAuthenticated = !!(req.session?.adminUser && (req.session.adminUser.role === 'admin' || req.session.adminUser.role === 'super_admin' || req.session.adminUser.role === 'superadmin'));
   res.locals.isAuthenticated = !!(req.session?.userId || req.session?.siteUser);
   res.locals.siteUser = req.session?.siteUser || null;
+  res.locals.csrfToken = req.session?.csrfToken || null;
   next();
 }
 

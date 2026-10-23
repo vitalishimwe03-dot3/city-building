@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS users (
   is_active BOOLEAN DEFAULT true,
   is_verified BOOLEAN DEFAULT false,
   verification_token VARCHAR(255),
+  trial_used BOOLEAN DEFAULT false,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -201,6 +202,72 @@ CREATE TABLE IF NOT EXISTS testimonials (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
+
+-- Subscription plans (free trial + paid tiers)
+CREATE TABLE IF NOT EXISTS plans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(100) NOT NULL,
+  slug VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  price_cents INTEGER NOT NULL DEFAULT 0,
+  currency VARCHAR(10) NOT NULL DEFAULT 'RWF',
+  stripe_price_cents INTEGER,
+  stripe_currency VARCHAR(10) DEFAULT 'usd',
+  billing_interval TEXT DEFAULT 'month',
+  duration_days INTEGER DEFAULT 30,
+  trial_days INTEGER DEFAULT 0,
+  features TEXT,
+  is_active BOOLEAN DEFAULT true,
+  sort_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User subscriptions (trialing, active, canceled, expired)
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INT NOT NULL,
+  plan_id INT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  provider TEXT DEFAULT 'manual',
+  provider_ref VARCHAR(255),
+  started_at DATETIME,
+  trial_ends_at DATETIME,
+  current_period_end DATETIME,
+  cancel_at_period_end BOOLEAN DEFAULT false,
+  canceled_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE RESTRICT
+);
+
+-- Payment records for manual payments and Stripe checkout
+CREATE TABLE IF NOT EXISTS payments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INT NOT NULL,
+  subscription_id INT,
+  plan_id INT NOT NULL,
+  amount INTEGER NOT NULL DEFAULT 0,
+  currency VARCHAR(10) NOT NULL DEFAULT 'RWF',
+  status TEXT DEFAULT 'pending',
+  provider TEXT DEFAULT 'manual',
+  provider_ref VARCHAR(255) UNIQUE,
+  method VARCHAR(50),
+  reference VARCHAR(255),
+  notes TEXT,
+  paid_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE SET NULL,
+  FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_payments_user ON payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 
 -- Hero slideshow slides
 CREATE TABLE IF NOT EXISTS hero_slides (

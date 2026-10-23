@@ -1,0 +1,125 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 style="margin:0;font-weight:700;"><i class="bi bi-credit-card"></i> Subscriptions &amp; Revenue</h4>
+    <small style="color:var(--text-muted);">Free trials, active plans and pending payments</small>
+  </div>
+  <a href="/admin/subscriptions" class="btn btn-sm-custom btn-edit-custom"><i class="bi bi-arrow-clockwise"></i> Refresh</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-xl-3 col-md-6">
+    <div class="stat-card-modern" style="border-left:4px solid #10b981;">
+      <div class="stat-label">Active subscriptions</div>
+      <div class="stat-value"><%= stats.activeSubscriptions %></div>
+      <div class="stat-change" style="color:#10b981;"><%= stats.trials %> on free trial</div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="stat-card-modern" style="border-left:4px solid #f59e0b;">
+      <div class="stat-label">Pending payments</div>
+      <div class="stat-value"><%= stats.pendingPayments %></div>
+      <div class="stat-change" style="color:#f59e0b;">Needs verification</div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="stat-card-modern" style="border-left:4px solid #0891b2;">
+      <div class="stat-label">Revenue (30 days)</div>
+      <div class="stat-value" style="font-size:18px;">
+        <% if (stats.revenue30.length) { %>
+          <% stats.revenue30.forEach(function(r) { %><div><%= formatAmount(r.total, r.currency) %></div><% }); %>
+        <% } else { %>0<% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="stat-card-modern" style="border-left:4px solid #6366f1;">
+      <div class="stat-label">All-time revenue</div>
+      <div class="stat-value" style="font-size:18px;">
+        <% if (stats.revenue.length) { %>
+          <% stats.revenue.forEach(function(r) { %><div><%= formatAmount(r.total, r.currency) %></div><% }); %>
+        <% } else { %>0<% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-card-modern mb-4">
+  <div class="card-header-custom">
+    <h5><i class="bi bi-receipt" style="color:#0891b2;"></i> Payments</h5>
+    <div class="d-flex gap-1">
+      <a href="/admin/subscriptions" class="btn btn-sm-custom <%= !status ? 'btn-edit-custom' : 'btn-view-custom' %>">All</a>
+      <a href="/admin/subscriptions?status=pending" class="btn btn-sm-custom <%= status === 'pending' ? 'btn-edit-custom' : 'btn-view-custom' %>">Pending</a>
+      <a href="/admin/subscriptions?status=paid" class="btn btn-sm-custom <%= status === 'paid' ? 'btn-edit-custom' : 'btn-view-custom' %>">Paid</a>
+      <a href="/admin/subscriptions?status=failed" class="btn btn-sm-custom <%= status === 'failed' ? 'btn-edit-custom' : 'btn-view-custom' %>">Failed</a>
+    </div>
+  </div>
+  <% if (!payments.length) { %>
+    <div class="empty-state"><i class="bi bi-receipt"></i><h5>No payments found</h5><p>Payments submitted by students will appear here.</p></div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table-custom">
+        <thead><tr><th>Student</th><th>Plan</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>
+          <% payments.forEach(function(pay) { %>
+            <tr>
+              <td><strong><%= pay.user_name %></strong><br><small><%= pay.user_email %></small></td>
+              <td><%= pay.plan_name %></td>
+              <td><%= formatAmount(pay.amount, pay.currency) %></td>
+              <td><small><%= (pay.method || 'manual').replace(/_/g, ' ') %></small></td>
+              <td><small style="word-break:break-all;"><%= pay.reference || '-' %></small></td>
+              <td><span class="badge badge-custom <%= pay.status === 'paid' ? 'success' : (pay.status === 'pending' ? 'warning' : 'danger') %>"><%= pay.status %></span></td>
+              <td><small><%= pay.created_at ? new Date(String(pay.created_at).replace(' ', 'T') + 'Z').toLocaleDateString() : '-' %></small></td>
+              <td style="min-width:150px;">
+                <% if (pay.status === 'pending') { %>
+                  <form action="/admin/payments/<%= pay.id %>/approve" method="POST" style="display:inline;" onsubmit="return confirm('Approve this payment and activate the plan?');">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button class="btn btn-sm-custom btn-toggle-custom" title="Approve"><i class="bi bi-check-lg"></i></button>
+                  </form>
+                  <form action="/admin/payments/<%= pay.id %>/reject" method="POST" style="display:inline;" onsubmit="return confirm('Reject this payment?');">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button class="btn btn-sm-custom btn-delete-custom" title="Reject"><i class="bi bi-x-lg"></i></button>
+                  </form>
+                <% } else { %>—<% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<div class="admin-card-modern">
+  <div class="card-header-custom">
+    <h5><i class="bi bi-people" style="color:#0891b2;"></i> Subscriptions</h5>
+  </div>
+  <% if (!subscriptions.length) { %>
+    <div class="empty-state"><i class="bi bi-people"></i><h5>No subscriptions yet</h5></div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table-custom">
+        <thead><tr><th>Student</th><th>Plan</th><th>Status</th><th>Trial ends</th><th>Period ends</th><th>Auto-renew</th><th>Actions</th></tr></thead>
+        <tbody>
+          <% subscriptions.forEach(function(sub) { %>
+            <tr>
+              <td><strong><%= sub.user_name %></strong><br><small><%= sub.user_email %></small></td>
+              <td><%= sub.plan_name %></td>
+              <td><span class="badge badge-custom <%= sub.is_pro ? 'success' : 'danger' %>"><%= sub.effective_status %></span></td>
+              <td><small><%= sub.trial_ends_at ? new Date(String(sub.trial_ends_at).replace(' ', 'T') + 'Z').toLocaleDateString() : '-' %></small></td>
+              <td><small><%= sub.current_period_end ? new Date(String(sub.current_period_end).replace(' ', 'T') + 'Z').toLocaleDateString() : '-' %></small></td>
+              <td><small><%= sub.cancel_at_period_end ? 'Cancels at period end' : 'Active' %></small></td>
+              <td>
+                <% if (sub.is_pro && !sub.cancel_at_period_end) { %>
+                  <form action="/admin/subscriptions/<%= sub.id %>/cancel" method="POST" style="display:inline;" onsubmit="return confirm('Schedule cancellation at period end?');">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button class="btn btn-sm-custom btn-delete-custom" title="Cancel"><i class="bi bi-x-circle"></i></button>
+                  </form>
+                <% } else { %>—<% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>

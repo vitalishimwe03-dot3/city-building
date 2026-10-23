@@ -6,6 +6,7 @@ const pool = require('../db');
 const User = require('../models/User');
 const Admin = require('../models/Admin');
 const SiteUser = require('../models/SiteUser');
+const Billing = require('../models/Billing');
 const initDb = require('../models/initDb');
 const { isAdminAuthenticated } = require('../middleware/auth');
 const { sendAdminPasswordResetEmail } = require('../email');
@@ -181,6 +182,7 @@ router.get('/dashboard', async (req, res, next) => {
     const [pendingRegs] = await pool.query("SELECT COUNT(*) as count FROM course_registrations WHERE status='pending'");
     const recentActivity = await Admin.getRecentActivityLogs(7);
     const [recentEnquiries] = await pool.query('SELECT id, name, email, created_at FROM enquiries ORDER BY created_at DESC LIMIT 5');
+    const billingStats = await Billing.getBillingStats();
 
     res.render('admin/dashboard', {
       title: 'Dashboard',
@@ -199,7 +201,9 @@ router.get('/dashboard', async (req, res, next) => {
       monthlyEnquiries: monthlyEnquiries || [],
       monthlyUsers: monthlyUsers || [],
       recentActivity: recentActivity || [],
-      recentEnquiries: recentEnquiries || []
+      recentEnquiries: recentEnquiries || [],
+      billingStats,
+      formatAmount: Billing.formatAmount
     });
   } catch (err) {
     next(err);
@@ -568,6 +572,92 @@ router.post('/registrations/:id/status', async (req, res, next) => {
       req.ip
     );
     res.redirect('/admin/registrations');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ========== SUBSCRIPTIONS & PAYMENTS ==========
+
+router.get('/subscriptions', async (req, res, next) => {
+  try {
+    const status = ['pending', 'paid', 'failed'].includes(req.query.status) ? req.query.status : '';
+    const [stats, subscriptions, payments] = await Promise.all([
+      Billing.getBillingStats(),
+      Billing.getAllSubscriptions(),
+      Billing.getAllPayments(status)
+    ]);
+    res.render('admin/subscriptions/index', {
+      title: 'Subscriptions',
+      stats,
+      subscriptions,
+      payments,
+      status,
+      formatAmount: Billing.formatAmount
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/payments/:id/approve', async (req, res, next) => {
+  try {
+    const payment = await Billing.getPaymentById(req.params.id);
+    if (!payment) {
+      return res.status(404).render('404', { title: 'Not found', message: 'Payment not found.' });
+    }
+    await Billing.markPaymentPaid(payment.id, {
+      reference: req.body.reference || payment.reference,
+      notes: req.body.notes || payment.notes,
+      provider: payment.provider || 'manual'
+    });
+    await Admin.logActivity(
+      req.session.adminUser.id, req.session.adminUser.full_name || req.session.adminUser.username,
+      'Approved subscription payment', 'payment', payment.id,
+      `Activated ${payment.plan_name} for ${payment.user_email} (${Billing.formatAmount(payment.amount, payment.currency)})`,
+      getClientIp(req)
+    );
+    res.redirect('/admin/subscriptions?status=pending');
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/payments/:id/reject', async (req, res, next) => {
+  try {
+    const payment = await Billing.getPaymentById(req.params.id);
+    if (!payment) {
+      return res.status(404).render('404', { title: 'Not found', message: 'Payment not found.' });
+    }
+    await Billing.rejectPayment(payment.id, req.body.notes || 'Rejected by admin.');
+    await Admin.logActivity(
+      req.session.adminUser.id, req.session.adminUser.full_name || req.session.adminUser.username,
+      'Rejected subscription payment', 'payment', payment.id,
+      `Rejected payment #${payment.id} for ${payment.user_email}`,
+      getClientIp(req)
+    );
+    res.redirect('/admin/subscriptions?status=pending');
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/subscriptions/:id/cancel', async (req, res, next) => {
+  try {
+    const [[sub]] = await pool.query('SELECT s.*, u.email AS user_email FROM subscriptions s JOIN users u ON u.id = s.user_id WHERE s.id = ?', [req.params.id]);
+    if (sub) {
+      await pool.query(
+        "UPDATE subscriptions SET cancel_at_period_end = 1, canceled_at = datetime('now'), updated_at = datetime('now') WHERE id = ?",
+        [sub.id]
+      );
+      await Admin.logActivity(
+        req.session.adminUser.id, req.session.adminUser.full_name || req.session.adminUser.username,
+        'Canceled subscription', 'subscription', sub.id,
+        `Scheduled cancellation for ${sub.user_email}`,
+        getClientIp(req)
+      );
+    }
+    res.redirect('/admin/subscriptions');
   } catch (err) {
     next(err);
   }

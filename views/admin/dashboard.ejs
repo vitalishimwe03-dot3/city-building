@@ -34,6 +34,47 @@
 </div>
 
 <div class="row g-4 mb-4">
+  <div class="col-xl-3 col-md-6">
+    <div class="stat-card-modern" style="border-left: 4px solid #10b981;">
+      <div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981;"><i class="bi bi-credit-card-check"></i></div>
+      <div class="stat-label">Active Subscriptions</div>
+      <div class="stat-value"><%= billingStats.activeSubscriptions %></div>
+      <div class="stat-change" style="color:#f59e0b;"><%= billingStats.trials %> on trial</div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="stat-card-modern" style="border-left: 4px solid #f59e0b;">
+      <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;"><i class="bi bi-hourglass-split"></i></div>
+      <div class="stat-label">Pending Payments</div>
+      <div class="stat-value"><%= billingStats.pendingPayments %></div>
+      <div class="stat-change"><a href="/admin/subscriptions?status=pending" style="color:#0891b2;">Verify now</a></div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="stat-card-modern" style="border-left: 4px solid #0891b2;">
+      <div class="stat-icon" style="background:rgba(8,145,178,0.1);color:#0891b2;"><i class="bi bi-cash-coin"></i></div>
+      <div class="stat-label">Revenue (30 days)</div>
+      <div class="stat-value" style="font-size:18px;">
+        <% if (billingStats.revenue30.length) { %>
+          <% billingStats.revenue30.forEach(function(r) { %><div><%= formatAmount(r.total, r.currency) %></div><% }); %>
+        <% } else { %>0<% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6">
+    <div class="stat-card-modern" style="border-left: 4px solid #6366f1;">
+      <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="stat-label">All-time Revenue</div>
+      <div class="stat-value" style="font-size:18px;">
+        <% if (billingStats.revenue.length) { %>
+          <% billingStats.revenue.forEach(function(r) { %><div><%= formatAmount(r.total, r.currency) %></div><% }); %>
+        <% } else { %>0<% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
   <div class="col-xl-4">
     <div class="admin-card-modern">
       <div class="card-header-custom">

@@ -125,6 +125,7 @@
       <a href="/admin/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>"><i class="bi bi-speedometer2"></i> Dashboard</a>
       <a href="/admin/site-users" class="nav-item <%= currentPage === 'site-users' ? 'active' : '' %>"><i class="bi bi-people"></i> Site Users</a>
       <a href="/admin/registrations" class="nav-item <%= currentPage === 'registrations' ? 'active' : '' %>"><i class="bi bi-journal-bookmark-fill"></i> Registrations</a>
+      <a href="/admin/subscriptions" class="nav-item <%= currentPage === 'subscriptions' ? 'active' : '' %>"><i class="bi bi-credit-card"></i> Subscriptions</a>
       <a href="/admin/enquiries" class="nav-item <%= currentPage === 'enquiries' ? 'active' : '' %>"><i class="bi bi-envelope"></i> Enquiries <% if (typeof newEnquiries !== 'undefined' && newEnquiries > 0) { %><span class="badge rounded-pill bg-danger ms-auto" style="font-size:10px;"><%= newEnquiries %></span><% } %></a>
       <div class="nav-section" style="margin-top:8px">Content</div>
       <a href="/admin/categories" class="nav-item <%= currentPage === 'categories' ? 'active' : '' %>"><i class="bi bi-bookmarks"></i> Categories</a>

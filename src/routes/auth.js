@@ -148,15 +148,21 @@ router.post('/resend-otp', resendOtpLimiter, async (req, res, next) => {
   }
 });
 
+function safeNext(value) {
+  if (typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/admin')) return value;
+  return null;
+}
+
 // ── Login ──
 router.get('/login', (req, res) => {
-  res.render('login', { title: 'Login' });
+  res.render('login', { title: 'Login', next: safeNext(req.query.next) });
 });
 
 router.post('/login', loginLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).render('login', { title: 'Login', error: 'Email and password required.' });
+    const nextUrl = safeNext(req.body.next || req.query.next);
+    if (!email || !password) return res.status(400).render('login', { title: 'Login', error: 'Email and password required.', next: nextUrl });
 
     // 1. Try admin authentication first
     const admin = await User.verifyUser(email, password);
@@ -198,7 +204,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
     req.session.siteUser = { id: user.id, email: user.email, full_name: user.full_name };
     req.session.userLanguage = user.language || 'en';
     if (!req.session.csrfToken) req.session.csrfToken = crypto.randomBytes(32).toString('hex');
-    res.redirect('/');
+    res.redirect(nextUrl || '/');
   } catch (err) {
     return res.status(503).render('login', { title: 'Login', error: 'Login service is temporarily unavailable. Please try again later.' });
   }

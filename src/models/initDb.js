@@ -39,13 +39,36 @@ function runSqlFile(filename) {
   });
 }
 
+// Runs every statement independently so an already-applied ALTER does not
+// prevent later CREATE TABLE / seed statements from running.
+function runSqlFileSafe(filename) {
+  return new Promise(function(resolve) {
+    try {
+      var sql = fs.readFileSync(path.join(dbDir, filename), 'utf8');
+      var statements = sql.split(';').map(function(s) { return s.trim(); }).filter(Boolean);
+      for (var i = 0; i < statements.length; i++) {
+        try {
+          var db = pool.getDb();
+          if (db) db.run(statements[i]);
+        } catch (_) {
+          // Statement already applied or not supported by this database.
+        }
+      }
+      resolve();
+    } catch (_) {
+      resolve();
+    }
+  });
+}
+
 async function runMigrations() {
   var db = pool.getDb();
   if (!db) return;
   var migrations = [
     "ALTER TABLE users ADD COLUMN google_id VARCHAR(255) UNIQUE",
     "ALTER TABLE users ADD COLUMN avatar VARCHAR(512)",
-    "ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT false"
+    "ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT false",
+    "ALTER TABLE users ADD COLUMN trial_used BOOLEAN DEFAULT false"
   ];
   for (var i = 0; i < migrations.length; i++) {
     try {
@@ -64,7 +87,8 @@ async function init() {
     await runSqlFile('seed.sql');
     await runSqlFile('admin-seed.sql');
     await runMigrations();
-    try { await runSqlFile('migration_005.sql'); } catch (_) {}
+    await runSqlFileSafe('migration_005.sql');
+    await runSqlFileSafe('migration_006.sql');
     var db = pool.getDb();
     if (db) {
       var data = db.export();

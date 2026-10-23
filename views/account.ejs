@@ -45,6 +45,9 @@
                 <button class="nav-link" id="wishlist-tab" data-bs-toggle="tab" data-bs-target="#wishlist" type="button" role="tab">Wishlist</button>
               </li>
               <li class="nav-item" role="presentation">
+                <button class="nav-link" id="billing-tab" data-bs-toggle="tab" data-bs-target="#billing" type="button" role="tab">Billing</button>
+              </li>
+              <li class="nav-item" role="presentation">
                 <button class="nav-link" id="language-tab" data-bs-toggle="tab" data-bs-target="#language" type="button" role="tab">Language</button>
               </li>
             </ul>
@@ -309,6 +312,36 @@
                 <div id="wishlistContainer">
                   <div class="text-center py-4 text-muted">
                     <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading your wishlist...
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
+                <div class="row g-3 align-items-start">
+                  <div class="col-md-7">
+                    <div class="p-4 rounded-3" style="background: var(--bg-secondary); border: 1px solid var(--border-primary);">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                          <div class="text-uppercase small fw-bold text-muted">Current plan</div>
+                          <h5 class="mb-1"><%= subscription && subscription.plan_name ? subscription.plan_name : 'Starter' %></h5>
+                        </div>
+                        <span class="badge <%= isPro ? 'bg-success' : 'bg-secondary' %>"><%= subscription && subscription.effective_status ? subscription.effective_status : 'free' %></span>
+                      </div>
+                      <% if (isPro) { %>
+                        <p class="small text-muted mb-2"><%= subscription.days_left %> day(s) remaining<%= subscription.status === 'trialing' ? ' in your free trial' : '' %></p>
+                      <% } else { %>
+                        <p class="small text-muted mb-2">Upgrade to Pro to download certificates and remove ads.</p>
+                      <% } %>
+                      <a href="/billing" class="btn btn-primary btn-sm"><i class="bi bi-credit-card"></i> Manage billing</a>
+                      <a href="/pricing" class="btn btn-outline-primary btn-sm">View plans</a>
+                    </div>
+                  </div>
+                  <div class="col-md-5">
+                    <div class="p-4 rounded-3 h-100" style="background: var(--bg-secondary); border: 1px solid var(--border-primary);">
+                      <div class="text-uppercase small fw-bold text-muted mb-2">Need help?</div>
+                      <p class="small mb-2">Pay with MTN MoMo, Airtel Money or bank transfer. Our team verifies payments quickly.</p>
+                      <a class="btn btn-success btn-sm" href="https://wa.me/250789257758?text=Hello%20City%20Building!%20I%20need%20help%20with%20my%20subscription." target="_blank" rel="noreferrer"><i class="bi bi-whatsapp"></i> Chat with us</a>
+                    </div>
                   </div>
                 </div>
               </div>

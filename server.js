@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
 const path = require('path');
@@ -9,8 +10,9 @@ const initDb = require('./src/models/initDb');
 const { setAdminLocals } = require('./src/middleware/auth');
 const { localizationMiddleware } = require('./src/localization');
 const adConfig = require('./src/config/ads');
+const billing = require('./src/routes/billing');
+const Billing = require('./src/models/Billing');
 const logger = require('./src/logger');
-require('dotenv').config();
 
 const app = express();
 app.set('trust proxy', 1);
@@ -20,6 +22,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('layout', 'layout');
 app.use(expressLayouts);
 app.use(express.static(path.join(__dirname, 'public')));
+// Stripe webhooks must receive the raw body, so register before JSON parsing.
+app.post('/billing/stripe-webhook', express.raw({ type: 'application/json' }), Billing.handleStripeWebhook);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -57,6 +61,7 @@ app.use(passport.initialize());
 
 app.use(setAdminLocals);
 app.use(localizationMiddleware);
+app.use(billing.attachBilling);
 
 app.use((req, res, next) => {
   req.pool = pool;
@@ -65,8 +70,20 @@ app.use((req, res, next) => {
   res.locals.canonicalUrl = `${proto}://${host}${req.originalUrl}`;
   res.locals.reqProtocol = proto;
   res.locals.reqHost = host;
+  res.locals.currentPath = req.path;
   res.locals.metaDescription = 'City Building Engineering Company Ltd offers professional software training in Revit, AutoCAD, ETABS, Lumion and more. Enroll in Kigali, Rwanda for career-ready engineering and design courses.';
-  res.locals.adConfig = adConfig;
+  const adsForPro = res.locals.isPro ? Object.assign({}, adConfig, {
+    adsenseEnabled: false,
+    affiliateEnabled: false,
+    leadGenEnabled: false,
+    cpeEnabled: false,
+    showTopBanner: false,
+    showFooterBanner: false,
+    showInContent: false,
+    showAffiliate: false,
+    showSponsored: false
+  }) : adConfig;
+  res.locals.adConfig = adsForPro;
   const gId = process.env.GOOGLE_CLIENT_ID;
   res.locals.googleAuthEnabled = !!(gId && gId !== 'your-google-client-id.apps.googleusercontent.com' && process.env.GOOGLE_CLIENT_SECRET);
   next();
@@ -83,7 +100,7 @@ app.get('/sitemap.xml', async (req, res, next) => {
     const [courses] = await pool.query('SELECT id, slug FROM subcourses');
     let urls = '';
     const base = `${req.protocol}://${req.get('host')}`;
-    const pages = ['', '/about', '/services', '/contact', '/certificate', '/career', '/faq', '/internship', '/login', '/signup'];
+    const pages = ['', '/about', '/services', '/contact', '/certificate', '/career', '/faq', '/internship', '/pricing', '/login', '/signup'];
     pages.forEach(p => { urls += `<url><loc>${base}${p}</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>\n`; });
     (cats || []).forEach(c => { urls += `<url><loc>${base}/category/${c.slug}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>\n`; });
     (courses || []).forEach(c => { urls += `<url><loc>${base}/course/${c.id}</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`; });
@@ -95,6 +112,7 @@ app.get('/sitemap.xml', async (req, res, next) => {
 
 app.use('/', require('./src/routes/public'));
 app.use('/', require('./src/routes/auth'));
+app.use('/', billing.router);
 app.use('/admin', require('./src/routes/admin'));
 app.use('/admin/images', require('./src/routes/admin-images'));
 app.use('/admin/slides', require('./src/routes/admin-slides'));

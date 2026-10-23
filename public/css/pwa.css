@@ -1,0 +1,79 @@
+.pwa-install-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 72px;
+  transform: translateX(-50%);
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 24px);
+  max-width: 520px;
+  padding: 12px 14px;
+  background: var(--bg-card, #1a2332);
+  border: 1px solid var(--border-primary, #1e3a5f);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.pwa-install-banner[hidden] { display: none !important; }
+.pwa-install-banner img { border-radius: 9px; flex-shrink: 0; }
+.pwa-install-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.pwa-install-text strong { font-size: 13px; color: var(--text-primary, #e2e8f0); }
+.pwa-install-text span { font-size: 11px; color: var(--text-muted, #94a3b8); }
+
+.mobile-bottom-nav { display: none; }
+
+@media (max-width: 767.98px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1070;
+    background: var(--bg-card, #121a26);
+    border-top: 1px solid var(--border-primary, #1e3a5f);
+    padding: 4px 2px calc(4px + env(safe-area-inset-bottom));
+    justify-content: space-around;
+  }
+
+  .mobile-bottom-nav a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 2px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted, #94a3b8);
+    text-decoration: none;
+    border-radius: 8px;
+  }
+
+  .mobile-bottom-nav a i { font-size: 18px; }
+  .mobile-bottom-nav a.active { color: #0891b2; background: rgba(8, 145, 178, 0.1); }
+
+  body { padding-bottom: 62px; }
+  .whatsapp-float { bottom: 78px !important; }
+  .ai-chat-fab { bottom: 78px !important; }
+  .ai-chat-panel { bottom: 78px !important; }
+  .pwa-install-banner { bottom: 68px; }
+}
+
+html.is-offline body::before {
+  content: 'You are offline - some features may be unavailable';
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  padding: 4px 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  background: #b45309;
+  color: #fff;
+}

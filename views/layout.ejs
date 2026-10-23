@@ -147,9 +147,10 @@
     <% } %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="icon" type="image/png" href="/images/logo.png">
-    <link rel="apple-touch-icon" href="/images/logo.png">
-    <link rel="shortcut icon" href="/images/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/icons/icon-32.png">
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -166,6 +167,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <link rel="stylesheet" href="/css/pwa.css">
   </head>
   <body>
     <% if (isAdminAuthenticated) { %>
@@ -177,6 +179,7 @@
           <a href="/admin/dashboard" class="text-white-50 text-decoration-none small">Dashboard</a>
           <a href="/admin/enquiries" class="text-white-50 text-decoration-none small">Enquiries</a>
           <a href="/admin/registrations" class="text-white-50 text-decoration-none small">Registrations</a>
+          <a href="/admin/subscriptions" class="text-white-50 text-decoration-none small">Subscriptions</a>
           <a href="/admin/users" class="text-white-50 text-decoration-none small">Users</a>
           <a href="/admin/categories" class="text-white-50 text-decoration-none small">Categories</a>
           <a href="/admin/courses" class="text-white-50 text-decoration-none small">Courses</a>
@@ -224,6 +227,12 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link px-2" href="/pricing">
+                <span class="nav-label">Pricing</span>
+                <% if (!isPro) { %><span class="badge bg-warning text-dark ms-1" style="font-size:9px;">PRO</span><% } %>
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link px-2" href="/certificate">
                 <span class="nav-label"><%- t('nav.certificate') %></span>
               </a>
@@ -255,9 +264,12 @@
                 <a class="nav-link dropdown-toggle px-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   <i class="bi bi-person-circle"></i>
                   <span class="nav-label"><%= siteUser.full_name || siteUser.email %></span>
+                  <% if (isPro) { %><span class="badge bg-success ms-1" style="font-size:9px;">PRO</span><% } %>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                   <li><a class="dropdown-item" href="/account"><i class="bi bi-person"></i> <%- t('nav.account') %></a></li>
+                  <li><a class="dropdown-item" href="/billing"><i class="bi bi-credit-card"></i> Billing</a></li>
+                  <li><a class="dropdown-item" href="/pricing"><i class="bi bi-stars"></i> Plans &amp; Pricing</a></li>
                   <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right"></i> <%- t('nav.logout') %></a></li>
                 </ul>
@@ -349,6 +361,7 @@
               <li><a href="/internship">Internship</a></li>
               <li><a href="/quiz">Course Quiz</a></li>
               <li><a href="/free-course">Free Mini-Course</a></li>
+              <li><a href="/pricing">Plans &amp; Pricing</a></li>
               <li><a href="/verify-certificate">Verify Certificate</a></li>
               <li><a href="/contact">Contact Us</a></li>
               <li><a href="/signup">Join Us</a></li>
@@ -423,11 +436,34 @@
       </div>
     </div>
 
+    <div id="pwa-install-banner" class="pwa-install-banner" hidden>
+      <img src="/icons/icon-192.png" alt="City Building app icon" width="40" height="40">
+      <div class="pwa-install-text">
+        <strong>Install City Building</strong>
+        <span>Get quick access and offline support</span>
+      </div>
+      <button type="button" id="pwa-install-btn" class="btn btn-primary btn-sm">Install</button>
+      <button type="button" id="pwa-install-dismiss" class="btn-close" aria-label="Dismiss"></button>
+    </div>
+
+    <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+      <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>"><i class="bi bi-house-door-fill"></i><span>Home</span></a>
+      <a href="/services" class="<%= currentPath && currentPath.startsWith('/services') ? 'active' : '' %>"><i class="bi bi-grid-fill"></i><span>Courses</span></a>
+      <a href="/pricing" class="<%= currentPath && currentPath.startsWith('/pricing') ? 'active' : '' %>"><i class="bi bi-stars"></i><span>Plans</span></a>
+      <% if (siteUser) { %>
+        <a href="/billing" class="<%= currentPath && currentPath.startsWith('/billing') ? 'active' : '' %>"><i class="bi bi-credit-card-fill"></i><span>Billing</span></a>
+        <a href="/account" class="<%= currentPath && currentPath.startsWith('/account') ? 'active' : '' %>"><i class="bi bi-person-fill"></i><span>Account</span></a>
+      <% } else { %>
+        <a href="/login" class="<%= currentPath && currentPath.startsWith('/login') ? 'active' : '' %>"><i class="bi bi-box-arrow-in-right"></i><span>Login</span></a>
+      <% } %>
+    </nav>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/@formspree/ajax@1" defer></script>
     <script src="/js/theme.js"></script>
     <script src="/js/site.js" defer></script>
     <script src="/js/ai-assistant.js" defer></script>
+    <script src="/js/pwa.js" defer></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
       // Smart language persistence

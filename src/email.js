@@ -180,4 +180,22 @@ async function sendOtpEmail(email, otp) {
   await sendMail(mailOptions);
 }
 
-module.exports = { sendEnquiryNotification, sendNewStudentNotification, sendAdminPasswordResetEmail, sendUserPasswordResetEmail, sendOtpEmail };
+async function sendSubscriptionNotification(data) {
+  const details = [
+    '<li><b>Student:</b> ' + (data.name || '') + '</li>',
+    '<li><b>Email:</b> ' + (data.email || '') + '</li>',
+    '<li><b>Plan:</b> ' + (data.plan || '') + '</li>',
+    '<li><b>Status:</b> ' + (data.status || '') + '</li>',
+    '<li><b>Amount:</b> ' + (data.amount || '') + '</li>'
+  ].join('');
+  const mailOptions = {
+    from: emailUser,
+    to: ADMIN_EMAIL,
+    subject: data.subject || 'Subscription update',
+    text: `Subscription update\n\nStudent: ${data.name || ''}\nEmail: ${data.email || ''}\nPlan: ${data.plan || ''}\nStatus: ${data.status || ''}\nAmount: ${data.amount || ''}\nReference: ${data.reference || ''}`,
+    html: `<h3>${data.subject || 'Subscription update'}</h3><ul>${details}<li><b>Reference:</b> ${data.reference || 'N/A'}</li></ul>`
+  };
+  await sendMail(mailOptions);
+}
+
+module.exports = { sendEnquiryNotification, sendNewStudentNotification, sendAdminPasswordResetEmail, sendUserPasswordResetEmail, sendOtpEmail, sendSubscriptionNotification };

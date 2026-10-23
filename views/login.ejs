@@ -16,6 +16,7 @@
     <% } %>
 
     <form method="post" action="/login" id="loginForm" novalidate>
+      <% if (typeof next !== 'undefined' && next) { %><input type="hidden" name="next" value="<%= next %>"><% } %>
       <div class="form-floating-group">
         <input type="text" name="email" class="form-control" id="loginEmail" placeholder="Email or username" required autocomplete="username" pattern=".{2,}">
         <label for="loginEmail">Email or username</label>
