@@ -14,9 +14,9 @@
     <% if (notice) { %>
       <div class="alert alert-success alert-dismissible fade show" role="alert"><%= notice %><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     <% } %>
-    <% if (req.query.canceled === '1' && notice) { %>
-      <div class="alert alert-info">Your plan remains active until the end of the current period.</div>
-    <% } %>
+      <% if (req.query.canceled === '1') { %>
+        <div class="alert alert-info">Your plan remains active until the end of the current period.</div>
+      <% } %>
 
     <div class="row g-4">
       <div class="col-lg-5">
@@ -41,7 +41,7 @@
                 <button class="btn btn-sm btn-success" type="submit">Keep my plan</button>
               </form>
             <% } else { %>
-              <form method="POST" action="/billing/cancel" onsubmit="return confirm('Cancel at the end of the current period?');">
+              <form method="POST" action="/billing/cancel" onsubmit="return confirm('Cancel at the end of the current period? You will keep access until it expires.');">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button class="btn btn-sm btn-outline-danger" type="submit">Cancel subscription</button>
               </form>
