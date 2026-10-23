@@ -181,7 +181,7 @@ a:hover { color: var(--accent); }
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   white-space: nowrap;
 }
 
@@ -214,13 +214,13 @@ a:hover { color: var(--accent); }
 
 /* Compact Nav */
 .nav-label {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 500;
   white-space: nowrap;
 }
 
 .nav-compact .nav-link .bi {
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .nav-compact .dropdown-toggle::after {
@@ -231,10 +231,13 @@ a:hover { color: var(--accent); }
 @media (min-width: 1200px) {
   .nav-compact .nav-link {
     padding: 0.35rem 0.5rem !important;
-    font-size: 0.78rem;
+    font-size: 0.9rem;
   }
   .nav-compact .nav-link .bi {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+  }
+  .nav-compact .nav-label {
+    font-size: 0.9rem;
   }
   .nav-compact .dropdown-toggle::after {
     margin-left: 0.25em;
@@ -335,21 +338,194 @@ a:hover { color: var(--accent); }
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
+  background: #0a0e17;
 }
 
 .hero-slide {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
   opacity: 0;
-  transition: opacity 1.5s ease-in-out;
-  transform: scale(1);
+  visibility: hidden;
+  transition: opacity 0.9s ease, visibility 0.9s ease;
   will-change: opacity;
 }
 
 .hero-slide.active {
   opacity: 1;
+  visibility: visible;
+  z-index: 1;
+}
+
+.hero-slide-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transform: scale(1);
+  will-change: transform;
+}
+
+.hero-slide--error {
+  background: linear-gradient(135deg, #0a1628, #1a365d, #0e7490);
+}
+
+.hero-slide.active[data-animation="slide"] .hero-slide-img {
+  animation: heroSlideIn 1.1s ease-out both;
+}
+
+.hero-slide.active[data-animation="slide-up"] .hero-slide-img {
+  animation: heroSlideUp 1.1s ease-out both;
+}
+
+.hero-slide.active[data-animation="zoom"] .hero-slide-img {
+  animation: heroZoomIn 1.4s ease-out both;
+}
+
+@keyframes heroSlideIn {
+  from { transform: translateX(8%); opacity: 0.35; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes heroSlideUp {
+  from { transform: translateY(8%); opacity: 0.35; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes heroZoomIn {
+  from { transform: scale(1.12); }
+  to { transform: scale(1); }
+}
+
+.hero-slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  background: rgba(10, 14, 23, 0.45);
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+
+.hero-slider-arrow:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.hero-slider-arrow.prev { left: 16px; }
+.hero-slider-arrow.next { right: 16px; }
+
+.hero-slider-dots {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(92%, 720px);
+  overflow-x: auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(10, 14, 23, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hero-slider-dots::-webkit-scrollbar { display: none; }
+
+.hero-slider-dots .dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: width 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+.hero-slider-dots .dot:hover {
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.hero-slider-dots .dot.active {
+  width: 26px;
+  background: var(--accent-light);
+  border-color: var(--accent-light);
+}
+
+.hero-slider-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+
+.hero-slider-progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent-light);
+}
+
+.hero.is-paused .hero-slider-progress span {
+  animation-play-state: paused !important;
+}
+
+@keyframes heroProgress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+[data-theme="light"] .hero-slider-arrow {
+  background: rgba(255, 255, 255, 0.75);
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.2);
+}
+
+[data-theme="light"] .hero-slider-arrow:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+[data-theme="light"] .hero-slider-dots {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="light"] .hero-slider-dots .dot {
+  background: rgba(15, 23, 42, 0.25);
+  border-color: rgba(15, 23, 42, 0.4);
+}
+
+[data-theme="light"] .hero-slider-dots .dot.active {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .hero-slide::after {
@@ -371,6 +547,35 @@ a:hover { color: var(--accent); }
     rgba(248, 250, 252, 0.1) 40%,
     rgba(248, 250, 252, 0.4) 100%
   );
+}
+
+@media (max-width: 575.98px) {
+  .hero-slider-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  .hero-slider-arrow.prev { left: 8px; }
+  .hero-slider-arrow.next { right: 8px; }
+  .hero-slider-dots {
+    bottom: 12px;
+    gap: 6px;
+    padding: 5px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide,
+  .hero-slide-img,
+  .hero-slider-dots .dot,
+  .hero-slider-arrow {
+    transition: none !important;
+    animation: none !important;
+  }
+  .hero-slider-progress span {
+    animation: none !important;
+    width: 100%;
+  }
 }
 
 .hero .container {
@@ -1074,7 +1279,7 @@ a:hover { color: var(--accent); }
   .navbar-nav { gap: 0.15rem; }
   .navbar .nav-link {
     padding: 0.5rem 0.75rem !important;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -1088,7 +1293,7 @@ a:hover { color: var(--accent); }
     max-width: 80px;
   }
   .nav-label {
-    font-size: 0.75rem;
+    font-size: 0.9rem;
   }
 }
 
