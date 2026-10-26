@@ -80,7 +80,9 @@ router.get('/logout', (req, res) => {
 // CSRF validation middleware for all admin POST/PUT/DELETE requests
 function csrfProtection(req, res, next) {
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-    const token = req.body._csrf || req.headers['x-csrf-token'];
+    const ct = req.headers['content-type'] || '';
+    if (ct.toLowerCase().startsWith('multipart/form-data')) return next();
+    const token = (req.body && req.body._csrf) || req.headers['x-csrf-token'];
     if (!token || token !== req.session?.csrfToken) {
       console.warn(`CSRF validation failed for ${req.method} ${req.path} from IP ${getClientIp(req)}`);
       return res.status(403).redirect('/login');
