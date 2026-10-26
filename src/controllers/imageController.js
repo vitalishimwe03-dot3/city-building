@@ -40,10 +40,10 @@ module.exports = {
   async upload(req, res) {
     try {
       if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded.' });
+        return res.status(400).render('admin/images/upload', { title: 'Upload Image', currentPage: 'site-images', sections: SECTIONS, error: 'No file uploaded.' });
       }
       const { section, alt_text } = req.body;
-      const image = await Image.create({
+      await Image.create({
         section: section || 'custom',
         filename: req.file.filename,
         original_name: req.file.originalname,
@@ -53,10 +53,10 @@ module.exports = {
         mime_type: req.file.mimetype,
         uploaded_by: req.session.adminUser?.id || null
       });
-      res.json({ success: true, image });
+      res.redirect('/admin/images?uploaded=1');
     } catch (err) {
       console.error('Upload error:', err);
-      res.status(500).json({ error: 'Upload failed: ' + err.message });
+      res.status(500).render('admin/images/upload', { title: 'Upload Image', currentPage: 'site-images', sections: SECTIONS, error: 'Upload failed: ' + err.message });
     }
   },
 
@@ -66,7 +66,7 @@ module.exports = {
         title: 'Upload Image',
         currentPage: 'site-images',
         sections: SECTIONS,
-        layout: false
+        csrfToken: req.session?.csrfToken
       });
     } catch (err) {
       res.status(500).send('Error loading upload page');
