@@ -1,0 +1,219 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-icon"><i class="bi bi-person-plus"></i></div>
+      <div class="logo-text">City Building</div>
+      <div class="logo-sub">Engineering Company Ltd</div>
+    </div>
+    <h2>Create account</h2>
+    <p class="auth-subtitle">Join our community of future engineers</p>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="auth-error"><i class="bi bi-exclamation-triangle-fill"></i> <%= error %></div>
+    <% } %>
+
+    <% if (typeof googleAuthEnabled !== 'undefined' && googleAuthEnabled) { %>
+    <a href="/auth/google" class="btn btn-google w-100" style="margin-bottom:20px;">
+      <svg width="20" height="20" viewBox="0 0 48 48" style="flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.55l7.97-5.96z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.96C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continue with Gmail
+    </a>
+
+    <div class="auth-divider"><span>or sign up with email</span></div>
+    <% } %>
+
+    <form method="post" action="/signup" id="signupForm" novalidate>
+      <div class="form-floating-group">
+        <input name="fullName" class="form-control" id="signupName" placeholder="John Doe" required pattern="^[A-Za-z\s\-\.]{2,}$" autocomplete="name">
+        <label for="signupName">Full name</label>
+        <div class="invalid-feedback">Please enter your full name.</div>
+      </div>
+      <div class="form-floating-group">
+        <input type="email" name="email" class="form-control" id="signupEmail" placeholder="your@email.com" required autocomplete="email" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
+        <label for="signupEmail">Email address</label>
+        <div class="invalid-feedback">Please enter a valid email.</div>
+      </div>
+      <div class="form-floating-group">
+
+        <div class="phone-group" id="phoneGroup">
+          <div class="flag-select" id="signupFlagSelect">
+            <div class="flag-trigger" id="signupFlagTrigger">
+              <span class="flag-emoji" id="signupFlagEmoji">🇷🇼</span>
+              <span class="flag-code" id="signupFlagCode">+250</span>
+            </div>
+            <div class="flag-dropdown" id="signupFlagDropdown"></div>
+            <select name="countryCode" id="signupCountryCode" style="display:none">
+              <option value="+250" data-flag="🇷🇼" data-name="Rwanda">+250</option>
+              <option value="+256" data-flag="🇺🇬" data-name="Uganda">+256</option>
+              <option value="+254" data-flag="🇰🇪" data-name="Kenya">+254</option>
+              <option value="+255" data-flag="🇹🇿" data-name="Tanzania">+255</option>
+              <option value="+257" data-flag="🇧🇮" data-name="Burundi">+257</option>
+              <option value="+243" data-flag="🇨🇩" data-name="DRC">+243</option>
+              <option value="+27" data-flag="🇿🇦" data-name="South Africa">+27</option>
+              <option value="+234" data-flag="🇳🇬" data-name="Nigeria">+234</option>
+              <option value="+233" data-flag="🇬🇭" data-name="Ghana">+233</option>
+              <option value="+251" data-flag="🇪🇹" data-name="Ethiopia">+251</option>
+              <option value="+20" data-flag="🇪🇬" data-name="Egypt">+20</option>
+              <option value="+212" data-flag="🇲🇦" data-name="Morocco">+212</option>
+              <option value="+225" data-flag="🇨🇮" data-name="Côte d'Ivoire">+225</option>
+              <option value="+237" data-flag="🇨🇲" data-name="Cameroon">+237</option>
+              <option value="+211" data-flag="🇸🇸" data-name="South Sudan">+211</option>
+              <option value="+1" data-flag="🇺🇸" data-name="USA">+1</option>
+              <option value="+44" data-flag="🇬🇧" data-name="UK">+44</option>
+              <option value="+33" data-flag="🇫🇷" data-name="France">+33</option>
+              <option value="+49" data-flag="🇩🇪" data-name="Germany">+49</option>
+              <option value="+86" data-flag="🇨🇳" data-name="China">+86</option>
+              <option value="+91" data-flag="🇮🇳" data-name="India">+91</option>
+              <option value="+971" data-flag="🇦🇪" data-name="UAE">+971</option>
+              <option value="+966" data-flag="🇸🇦" data-name="Saudi Arabia">+966</option>
+              <option value="+81" data-flag="🇯🇵" data-name="Japan">+81</option>
+            </select>
+          </div>
+          <input type="tel" name="phone" class="form-control phone-input" id="signupPhone"
+                 placeholder="7XX XXX XXX" autocomplete="tel">
+        </div>
+
+        <label for="signupPhone" style="position:static;transform:none;margin-bottom:4px;font-size:13px;color:var(--text-muted);">Phone number</label>
+        <div class="invalid-feedback">Please enter a valid phone number.</div>
+      </div>
+      <div class="form-floating-group">
+        <input type="password" name="password" class="form-control" id="signupPassword" placeholder="Create password" required autocomplete="new-password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]).{8,}$">
+        <label for="signupPassword">Password</label>
+        <button type="button" class="password-toggle" id="pwToggle" tabindex="-1" aria-label="Toggle password visibility"><i class="bi bi-eye-slash"></i></button>
+        <div class="pw-strength" id="pwStrength">
+          <span class="pw-bar"></span><span class="pw-bar"></span><span class="pw-bar"></span><span class="pw-bar"></span>
+        </div>
+        <div class="pw-strength-text" id="pwStrengthText"></div>
+        <div class="invalid-feedback">8+ chars, uppercase, lowercase, number & symbol required.</div>
+      </div>
+      <div class="form-floating-group">
+        <input type="password" name="confirmPassword" class="form-control" id="signupConfirm" placeholder="Confirm password" required autocomplete="new-password">
+        <label for="signupConfirm">Confirm password</label>
+        <div class="invalid-feedback" id="confirmFeedback">Passwords must match.</div>
+      </div>
+      <p class="small text-muted mt-2 mb-3" style="font-size:12px;">By creating an account, you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</p>
+      <button class="btn btn-primary w-100" type="submit" id="signupSubmitBtn"><i class="bi bi-person-check"></i> Create Account</button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+  </div>
+</section>
+
+<style>
+.auth-divider { display:flex; align-items:center; gap:12px; margin:16px 0; color:var(--text-muted); font-size:13px; }
+.auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background:var(--border-primary); }
+.btn-google { display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; border-radius:10px; border:1px solid var(--border-primary); background:var(--bg-surface); color:var(--text-primary); font-weight:600; font-size:14px; text-decoration:none; transition:all 0.2s; }
+.btn-google:hover { background:var(--bg-card); border-color:var(--accent); color:var(--accent); }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var pwInput = document.getElementById('signupPassword');
+  var pwToggle = document.getElementById('pwToggle');
+  if (pwToggle) {
+    pwToggle.addEventListener('click', function() {
+      var type = pwInput.type === 'password' ? 'text' : 'password';
+      pwInput.type = type;
+      pwToggle.querySelector('i').className = type === 'password' ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+  }
+  var pwStrength = document.getElementById('pwStrength');
+  var pwStrengthText = document.getElementById('pwStrengthText');
+  if (pwInput) {
+    pwInput.addEventListener('input', function() {
+      var val = pwInput.value;
+      var bars = pwStrength.querySelectorAll('.pw-bar');
+      bars.forEach(function(b) { b.className = 'pw-bar'; });
+      if (!val) { pwStrengthText.textContent = ''; return; }
+      var score = 0;
+      if (val.length >= 8) score++;
+      if (/[a-z]/.test(val)) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/\d/.test(val)) score++;
+      if (/[^a-zA-Z0-9]/.test(val)) score++;
+      var label = '', cls = '';
+      if (score <= 2) { label = 'Weak'; cls = 'weak'; for (var i = 0; i < 1 && i < bars.length; i++) bars[i].className += ' ' + cls; }
+      else if (score <= 3) { label = 'Medium'; cls = 'medium'; for (var i = 0; i < 2 && i < bars.length; i++) bars[i].className += ' ' + cls; }
+      else if (score <= 4) { label = 'Strong'; cls = 'strong'; for (var i = 0; i < 3 && i < bars.length; i++) bars[i].className += ' ' + cls; }
+      else { label = 'Very strong'; cls = 'very-strong'; for (var i = 0; i < 4 && i < bars.length; i++) bars[i].className += ' ' + cls; }
+      pwStrengthText.textContent = label;
+      pwStrengthText.className = 'pw-strength-text ' + cls;
+    });
+  }
+  var phoneInput = document.getElementById('signupPhone');
+  var form = document.getElementById('signupForm');
+  var submitBtn = document.getElementById('signupSubmitBtn');
+
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function() {
+      this.value = this.value.replace(/[^0-9\s\-\(\)]/g, '');
+    });
+  }
+
+  // Custom flag dropdown
+  function initFlagDropdown(selectId, triggerId, dropdownId, flagEmojiId, flagCodeId) {
+    var select = document.getElementById(selectId);
+    var trigger = document.getElementById(triggerId);
+    var dropdown = document.getElementById(dropdownId);
+    var emoji = document.getElementById(flagEmojiId);
+    var code = document.getElementById(flagCodeId);
+    if (!select || !trigger || !dropdown) return;
+
+    function buildList() {
+      dropdown.innerHTML = '';
+      for (var i = 0; i < select.options.length; i++) {
+        var opt = select.options[i];
+        var div = document.createElement('div');
+        div.className = 'flag-option' + (opt.selected ? ' active' : '');
+        div.innerHTML = '<span class="flag-emoji">' + (opt.getAttribute('data-flag') || '') + '</span><span class="flag-label">' + (opt.getAttribute('data-name') || '') + '</span><span class="flag-dial">' + opt.value + '</span>';
+        div.dataset.value = opt.value;
+        div.dataset.flag = opt.getAttribute('data-flag') || '';
+        div.addEventListener('click', function() {
+          select.value = this.dataset.value;
+          emoji.textContent = this.dataset.flag;
+          code.textContent = this.dataset.value;
+          dropdown.classList.remove('open');
+          var all = dropdown.querySelectorAll('.flag-option');
+          for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
+          this.classList.add('active');
+        });
+        dropdown.appendChild(div);
+      }
+    }
+    buildList();
+
+    trigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function() {
+      dropdown.classList.remove('open');
+    });
+  }
+
+  initFlagDropdown('signupCountryCode', 'signupFlagTrigger', 'signupFlagDropdown', 'signupFlagEmoji', 'signupFlagCode');
+
+  form.addEventListener('submit', function(e) {
+    var pw = form.password.value;
+    var cpw = form.confirmPassword.value;
+    if (pw !== cpw) {
+      form.confirmPassword.setCustomValidity('Passwords do not match');
+      e.preventDefault();
+    } else {
+      form.confirmPassword.setCustomValidity('');
+    }
+    var cc = document.getElementById('signupCountryCode');
+    if (cc && phoneInput) {
+      phoneInput.value = cc.value + ' ' + phoneInput.value.replace(/^\+?\d+\s*/, '');
+    }
+    if (!form.checkValidity()) { e.preventDefault(); e.stopPropagation(); }
+    form.classList.add('was-validated');
+    if (form.checkValidity() && submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating account...';
+    }
+  });
+});
+</script>

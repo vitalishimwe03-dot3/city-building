@@ -1,0 +1,483 @@
+<%- include('partials/ads', { slot: 'topBanner' }) %>
+
+<section class="subcourse-hero py-5">
+  <div class="container">
+    <% 
+      const toolImages = {
+        revit: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+        archicad: 'https://images.unsplash.com/photo-1581093588401-5e2f05423024?auto=format&fit=crop&w=1200&q=80',
+        sketchup: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80',
+        autocad: 'https://images.unsplash.com/photo-1601582582450-cc87d9f0e648?auto=format&fit=crop&w=1200&q=80',
+        rhino: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80',
+        grasshopper: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1200&q=80',
+        lumion: 'https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&w=1200&q=80',
+        vray: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80',
+        enscape: 'https://images.unsplash.com/photo-1586717167541-33ac42f3666c?auto=format&fit=crop&w=1200&q=80',
+        dynamo: 'https://images.unsplash.com/photo-1581092163562-40460ef784b2?auto=format&fit=crop&w=1200&q=80',
+        cad: 'https://images.unsplash.com/photo-1511918170649-c86f6f1588e7?auto=format&fit=crop&w=1200&q=80',
+        architectural: 'https://images.unsplash.com/photo-1503387762519-52582b8ba3f0?auto=format&fit=crop&w=1200&q=80',
+        design: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1200&q=80',
+        modeling: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80',
+        rendering: 'https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&w=1200&q=80'
+      };
+      function getToolImage(name) {
+        const lower = (name || '').toLowerCase();
+        for (const key in toolImages) {
+          if (lower.includes(key)) return toolImages[key];
+        }
+        return null;
+      }
+    %>
+    <!-- Back Navigation -->
+    <div class="mb-4">
+      <a href="/category/<%= course.category_slug %>" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to <%= course.category_name %>
+      </a>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="row g-4 g-lg-5 align-items-center mb-5">
+      <div class="col-12 col-lg-5">
+        <div class="hero-image-wrapper">
+          <div class="card border-0 overflow-hidden shadow-lg" style="height: 350px;">
+<% if (course.image && (course.image.startsWith('http://') || course.image.startsWith('https://'))) { %>
+              <img src="<%= course.image %>" alt="<%= course.name %> software training at City Building Engineering" class="w-100 h-100" style="object-fit: contain; background: var(--bg-secondary); padding: 20px; border: 1px solid var(--border);">
+            <% } else if (course.image) { %>
+              <img src="/images/<%= course.image %>" alt="<%= course.name %> training" class="w-100 h-100" style="object-fit: contain; background: var(--bg-secondary); padding: 20px; border: 1px solid var(--border);">
+            <% } else { %>
+              <% const defaultCourseImage = getToolImage(course.name) || 'https://images.pexels.com/photos/238622/pexels-photo-238622.jpeg?auto=compress&cs=tinysrgb&w=800'; %>
+              <img src="<%= defaultCourseImage %>" alt="<%= course.name %> training" class="w-100 h-100" style="object-fit: cover;">
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Column -->
+      <div class="col-12 col-lg-7">
+        <div class="hero-content">
+          <div class="mb-3 d-flex gap-2 flex-wrap">
+            <span class="badge bg-info text-white"><%= course.category_name %></span>
+            <% if (course.sub_category) { %>
+              <span class="badge" style="background: var(--accent-primary-light); color: #fff;"><%= course.sub_category %></span>
+            <% } %>
+          </div>
+          <h1 class="display-5 fw-bold mb-3">
+            <%= course.name %>
+          </h1>
+          <p class="lead text-muted mb-4">
+            <%= course.description || 'Project-focused training in software used by building professionals.' %>
+          </p>
+
+          <!-- Key Benefits -->
+          <div class="benefits-section mb-4">
+            <h3 class="h5 fw-bold mb-3">What you will learn</h3>
+            <ul class="list-unstyled course-benefits">
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span class="ms-2">Practical tool workflows used in the profession</span>
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span class="ms-2">Real workspace scenarios for quick skill application</span>
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span class="ms-2">Internship preparation and portfolio-ready projects</span>
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span class="ms-2">Industry standards and best practices</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- CTA Buttons -->
+          <div class="d-flex flex-column flex-sm-row gap-3 mb-3">
+            <a href="/booking/<%= course.id %>" target="_blank" rel="noreferrer" class="btn btn-success btn-lg px-4">
+              <i class="bi bi-whatsapp"></i> Book on WhatsApp
+            </a>
+            <a href="#enquiry" class="btn btn-primary btn-lg px-4">
+              <i class="bi bi-envelope"></i> Enquire
+            </a>
+            <a href="/course/<%= course.id %>/syllabus" class="btn btn-outline-secondary btn-lg px-4">
+              <i class="bi bi-journal-text"></i> Syllabus
+            </a>
+          </div>
+          <div id="registerMessage"></div>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-success btn-lg px-4 register-course-btn" data-course-id="<%= course.id %>">
+              <i class="bi bi-journal-plus"></i> Register for this Course
+            </button>
+            <button class="btn btn-outline-warning btn-lg px-4 wishlist-btn" data-course-id="<%= course.id %>">
+              <i class="bi bi-bookmark-heart"></i> <span id="wishlistText">Save to Wishlist</span>
+            </button>
+          </div>
+          <div class="mb-3" id="reviewSummary">
+            <div class="d-flex align-items-center gap-2">
+              <span class="star-rating" id="avgStars"></span>
+              <span class="fw-bold" id="avgRatingText">0.0</span>
+              <span class="text-muted" id="reviewCountText">(0 reviews)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%- include('partials/ads', { slot: 'inContent' }) %>
+    <%- include('partials/ads', { slot: 'affiliate' }) %>
+    <%- include('partials/ads', { slot: 'sponsored' }) %>
+    <%- include('partials/ads', { slot: 'leadGen' }) %>
+
+    <!-- Course Overview -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-3 col-sm-6">
+        <div class="info-card">
+          <i class="bi bi-gear-fill fs-3 mb-2" style="color: var(--accent-primary-light);"></i>
+          <h4 class="h6 fw-bold">Practical Skills</h4>
+          <p class="small text-muted mb-0">Professional-grade tools</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="info-card">
+          <i class="bi bi-briefcase-fill fs-3 mb-2" style="color: var(--accent-primary-light);"></i>
+          <h4 class="h6 fw-bold">Career Focused</h4>
+          <p class="small text-muted mb-0">Job-ready training</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="info-card">
+          <i class="bi bi-person-fill fs-3 mb-2" style="color: var(--accent-primary-light);"></i>
+          <h4 class="h6 fw-bold">Expert Support</h4>
+          <p class="small text-muted mb-0">Industry mentors</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="info-card">
+          <i class="bi bi-award-fill fs-3 mb-2" style="color: var(--accent-primary-light);"></i>
+          <h4 class="h6 fw-bold">Certification</h4>
+          <p class="small text-muted mb-0">Recognized credential</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing & Comparison Table -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-4">
+        <div class="info-card text-center p-4">
+          <i class="bi bi-clock-fill fs-2 mb-2" style="color: var(--accent-primary-light);"></i>
+          <h4 class="h6 fw-bold">Duration</h4>
+          <p class="h3 fw-bold mb-0" style="color: var(--accent-primary-light);"><%= course.duration || '4-8 weeks' %></p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="info-card text-center p-4">
+          <i class="bi bi-cash-stack fs-2 mb-2" style="color: var(--accent-primary-light);"></i>
+          <h4 class="h6 fw-bold">Price</h4>
+          <p class="h3 fw-bold mb-0" style="color: var(--accent-primary-light);"><%= course.price || 'Contact us' %></p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="info-card text-center p-4">
+          <i class="bi bi-bar-chart-fill fs-2 mb-2" style="color: var(--accent-primary-light);"></i>
+          <h4 class="h6 fw-bold">Level</h4>
+          <p class="h3 fw-bold mb-0" style="color: var(--accent-primary-light);"><%= course.skill_level || 'All Levels' %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waitlist Section -->
+    <div class="p-4 mb-5 rounded-4 text-center" style="background: var(--bg-secondary); border: 1px solid var(--border);">
+      <h3 class="h5 fw-bold mb-2"><i class="bi bi-bell"></i> Not ready to enroll yet?</h3>
+      <p class="text-muted small mb-3">Join the waitlist and we will notify you when the next intake opens.</p>
+      <form id="waitlistForm" class="row g-2 justify-content-center" style="max-width: 600px; margin: 0 auto;">
+        <div class="col-md-4"><input type="text" id="wlName" class="form-control" placeholder="Your name" required></div>
+        <div class="col-md-4"><input type="email" id="wlEmail" class="form-control" placeholder="Your email" required></div>
+        <div class="col-md-3"><input type="tel" id="wlPhone" class="form-control" placeholder="Phone"></div>
+        <div class="col-md-1"><button type="submit" class="btn btn-primary w-100"><i class="bi bi-bell"></i></button></div>
+      </form>
+      <div id="wlMessage" class="mt-2 small"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Reviews Section -->
+<section class="py-5" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+        <h2 class="h3 fw-bold mb-4"><i class="bi bi-star-fill" style="color: var(--warm);"></i> Student Reviews</h2>
+        <div id="reviewsContainer">
+          <div class="text-center py-4 text-muted">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading reviews...
+          </div>
+        </div>
+
+        <div class="mt-4 p-4" style="background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
+          <h3 class="h5 fw-bold mb-3"><i class="bi bi-pencil-square"></i> Write a Review</h3>
+          <div id="reviewLoginMessage">
+            <p class="text-muted"><a href="/login">Log in</a> to leave a review.</p>
+          </div>
+          <div id="reviewFormContainer" style="display:none;">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Your Rating</label>
+              <div class="star-input" id="starInput">
+                <% for (let i = 1; i <= 5; i++) { %>
+                  <i class="bi bi-star star-btn" data-value="<%= i %>" style="font-size: 1.8rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s;"></i>
+                <% } %>
+              </div>
+              <input type="hidden" id="reviewRating" value="0">
+            </div>
+            <div class="mb-3">
+              <label for="reviewText" class="form-label">Your Review</label>
+              <textarea id="reviewText" class="form-control" rows="3" placeholder="Share your experience with this course..."></textarea>
+            </div>
+            <button id="submitReview" class="btn btn-primary"><i class="bi bi-send"></i> Submit Review</button>
+            <div id="reviewMessage" class="mt-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Enquiry Form Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+        <div id="enquiry" class="enquiry-card p-5">
+          <h2 class="h3 fw-bold mb-2">Ready to apply?</h2>
+          <p class="text-muted mb-4">Send your details and we will guide you through registration and placement.</p>
+
+          <form id="enquiry-form" action="https://formspree.io/f/xnjyzgjr" method="POST" class="row g-3">
+            <input type="hidden" name="_subject" value="Course enquiry from <%= course.name %>">
+            <div data-fs-success class="alert alert-success d-none" role="alert"></div>
+            <div data-fs-error class="alert alert-danger d-none" role="alert"></div>
+            <div class="col-md-6">
+              <label for="name" class="form-label">Full name *</label>
+              <input type="text" name="name" id="name" class="form-control form-control-lg" placeholder="Enter your full name" data-fs-field required>
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email *</label>
+              <input type="email" name="email" id="email" class="form-control form-control-lg" placeholder="your.email@example.com" data-fs-field required>
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone *</label>
+              <input type="tel" name="phone" id="phone" class="form-control form-control-lg" placeholder="Phone number" data-fs-field required>
+            </div>
+            <div class="col-md-6">
+              <label for="course" class="form-label">Course</label>
+              <input type="text" id="course" class="form-control form-control-lg" value="<%= course.name %>" disabled>
+              <input type="hidden" name="course" value="<%= course.name %>">
+            </div>
+            <div class="col-12">
+              <label for="message" class="form-label">Additional questions (optional)</label>
+              <textarea name="message" id="message" rows="5" class="form-control" placeholder="Tell us more about your background or any questions..." data-fs-field></textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary btn-lg w-100 w-md-auto" data-fs-submit-btn>
+                <i class="bi bi-send"></i> Submit enquiry
+              </button>
+            </div>
+          </form>
+          <script>
+            window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
+            formspree('initForm', { formElement: '#enquiry-form', formId: 'xnjyzgjr' });
+          </script>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var courseId = '<%= course.id %>';
+  loadReviews(courseId);
+  loadWishlistStatus(courseId);
+
+  // Waitlist form
+  var wlForm = document.getElementById('waitlistForm');
+  var wlMsg = document.getElementById('wlMessage');
+  if (wlForm) {
+    wlForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var name = document.getElementById('wlName').value.trim();
+      var email = document.getElementById('wlEmail').value.trim();
+      var phone = document.getElementById('wlPhone').value.trim();
+      try {
+        var res = await fetch('/api/course/' + courseId + '/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone })
+        });
+        var data = await res.json();
+        wlMsg.innerHTML = '<span style="color: var(--accent-primary-light);">' + (data.message || 'Added to waitlist!') + '</span>';
+        wlForm.reset();
+      } catch(e) {
+        wlMsg.innerHTML = '<span class="text-danger">Failed to join waitlist.</span>';
+      }
+    });
+  }
+
+  // Wishlist toggle
+  document.querySelector('.wishlist-btn')?.addEventListener('click', async function() {
+    var text = document.getElementById('wishlistText');
+    try {
+      var res = await fetch('/api/course/' + courseId + '/wishlist', { method: 'POST' });
+      var data = await res.json();
+      if (data.success) {
+        text.textContent = data.bookmarked ? 'Saved ✓' : 'Save to Wishlist';
+        this.classList.toggle('btn-outline-warning');
+        this.classList.toggle('btn-warning');
+      } else {
+        alert(data.error || 'Please log in first.');
+      }
+    } catch (e) {
+      console.error('Wishlist error:', e);
+    }
+  });
+
+  // Star rating input
+  var starBtns = document.querySelectorAll('.star-btn');
+  var ratingInput = document.getElementById('reviewRating');
+  starBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var val = parseInt(this.dataset.value);
+      ratingInput.value = val;
+      starBtns.forEach(function(s, i) {
+        s.className = (i < val) ? 'bi bi-star-fill star-btn' : 'bi bi-star star-btn';
+        s.style.color = (i < val) ? 'var(--warm)' : 'var(--text-muted)';
+      });
+    });
+    btn.addEventListener('mouseenter', function() {
+      var val = parseInt(this.dataset.value);
+      starBtns.forEach(function(s, i) {
+        s.style.color = (i < val) ? 'var(--warm)' : 'var(--text-muted)';
+      });
+    });
+    btn.addEventListener('mouseleave', function() {
+      var val = parseInt(ratingInput.value);
+      starBtns.forEach(function(s, i) {
+        s.style.color = (i < val) ? 'var(--warm)' : 'var(--text-muted)';
+      });
+    });
+  });
+
+  // Submit review
+  document.getElementById('submitReview')?.addEventListener('click', async function() {
+    var rating = document.getElementById('reviewRating').value;
+    var review = document.getElementById('reviewText').value.trim();
+    var msg = document.getElementById('reviewMessage');
+    if (!rating || parseInt(rating) < 1) {
+      msg.innerHTML = '<div class="alert alert-warning">Please select a rating.</div>';
+      return;
+    }
+    try {
+      var res = await fetch('/api/course/' + courseId + '/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: parseInt(rating), review: review })
+      });
+      var data = await res.json();
+      if (data.success) {
+        msg.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+        loadReviews(courseId);
+      } else {
+        msg.innerHTML = '<div class="alert alert-warning">' + (data.error || 'Please log in.') + '</div>';
+      }
+    } catch (e) {
+      msg.innerHTML = '<div class="alert alert-danger">Failed to submit review.</div>';
+    }
+  });
+});
+
+async function loadReviews(courseId) {
+  var container = document.getElementById('reviewsContainer');
+  var summary = document.getElementById('reviewSummary');
+  try {
+    var res = await fetch('/api/course/' + courseId + '/reviews');
+    var data = await res.json();
+
+    // Update summary
+    if (summary && data.stats) {
+      var avg = parseFloat(data.stats.avg_rating) || 0;
+      var count = data.stats.count || 0;
+      document.getElementById('avgRatingText').textContent = avg.toFixed(1);
+      document.getElementById('reviewCountText').textContent = '(' + count + ' review' + (count !== 1 ? 's' : '') + ')';
+      var starsHtml = '';
+      for (var i = 1; i <= 5; i++) {
+        starsHtml += '<i class="bi ' + (i <= Math.round(avg) ? 'bi-star-fill' : 'bi-star') + '" style="color:var(--warm);font-size:1.1rem;"></i>';
+      }
+      document.getElementById('avgStars').innerHTML = starsHtml;
+    }
+
+    // Check if user can review
+    var loginMsg = document.getElementById('reviewLoginMessage');
+    var formContainer = document.getElementById('reviewFormContainer');
+    if (loginMsg && formContainer) {
+      var siteUser = '<%= siteUser ? "true" : "" %>';
+      if (siteUser) {
+        loginMsg.style.display = 'none';
+        formContainer.style.display = 'block';
+        if (data.myReview) {
+          document.getElementById('reviewRating').value = data.myReview.rating;
+          document.getElementById('reviewText').value = data.myReview.review || '';
+          var btns = document.querySelectorAll('.star-btn');
+          btns.forEach(function(s, i) {
+            s.className = (i < data.myReview.rating) ? 'bi bi-star-fill star-btn' : 'bi bi-star star-btn';
+            s.style.color = (i < data.myReview.rating) ? 'var(--warm)' : 'var(--text-muted)';
+          });
+        }
+      } else {
+        loginMsg.style.display = 'block';
+        formContainer.style.display = 'none';
+      }
+    }
+
+    // Render reviews
+    if (!data.reviews || data.reviews.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-chat-square-text" style="font-size:2rem;display:block;margin-bottom:8px;opacity:0.4;"></i>No reviews yet. Be the first to review!</div>';
+      return;
+    }
+    var html = '';
+    data.reviews.forEach(function(r) {
+      var starHtml = '';
+      for (var i = 1; i <= 5; i++) {
+        starHtml += '<i class="bi ' + (i <= r.rating ? 'bi-star-fill' : 'bi-star') + '" style="color:var(--warm);font-size:0.9rem;"></i>';
+      }
+      html += '<div class="review-item p-3 mb-3" style="background:var(--bg-surface);border-radius:10px;border:1px solid var(--border);">' +
+        '<div class="d-flex justify-content-between align-items-start mb-1">' +
+          '<strong>' + escHtml(r.user_name) + '</strong>' +
+          '<small class="text-muted">' + new Date(r.created_at).toLocaleDateString() + '</small>' +
+        '</div>' +
+        '<div class="mb-1">' + starHtml + '</div>' +
+        (r.review ? '<p class="mb-0 text-muted small">' + escHtml(r.review) + '</p>' : '<p class="mb-0 text-muted small fst-italic">No written review.</p>') +
+      '</div>';
+    });
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div class="alert alert-danger">Failed to load reviews.</div>';
+  }
+}
+
+async function loadWishlistStatus(courseId) {
+  var btn = document.querySelector('.wishlist-btn');
+  var text = document.getElementById('wishlistText');
+  if (!btn) return;
+  try {
+    var res = await fetch('/api/course/' + courseId + '/wishlist-status');
+    var data = await res.json();
+    if (data.bookmarked) {
+      text.textContent = 'Saved ✓';
+      btn.classList.remove('btn-outline-warning');
+      btn.classList.add('btn-warning');
+    }
+  } catch (e) {}
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>

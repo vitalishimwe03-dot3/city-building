@@ -1,0 +1,365 @@
+const express = require('express');
+const router = express.Router();
+const rateLimit = require('express-rate-limit');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const passport = require('../config/passport');
+const pool = require('../db');
+const SiteUser = require('../models/SiteUser');
+const User = require('../models/User');
+const { sendNewStudentNotification, sendUserPasswordResetEmail, sendAdminPasswordResetEmail, sendOtpEmail } = require('../email');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many login attempts, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const signupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many signup attempts, please try again after an hour.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const otpLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many OTP attempts, please try again later.' }
+});
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many password reset requests, please try again after an hour.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const resendOtpLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 3,
+  message: { error: 'Too many OTP resend requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+function validateCsrfToken(req) {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    const token = req.body._csrf || req.headers['x-csrf-token'];
+    return token && req.session?.csrfToken && token === req.session.csrfToken;
+  }
+  return true;
+}
+
+function csrfProtection(req, res, next) {
+  if (!validateCsrfToken(req)) {
+    return res.status(403).render('login', { title: 'Login', error: 'Invalid form token. Please try again.' });
+  }
+  next();
+}
+
+function validatePasswordStrength(password) {
+  const errors = [];
+  if (!password || password.length < 8) errors.push('at least 8 characters');
+  if (!/[a-z]/.test(password)) errors.push('one lowercase letter');
+  if (!/[A-Z]/.test(password)) errors.push('one uppercase letter');
+  if (!/\d/.test(password)) errors.push('one number');
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) errors.push('one special character');
+  return errors;
+}
+
+const accountDashboardNews = [
+  { title: 'New course launch', summary: 'Explore our latest Structural and Rendering courses now available.', date: 'June 1, 2026' },
+  { title: 'Internship program open', summary: 'Applications are open for the July internship cohort. Submit your profile today.', date: 'May 25, 2026' },
+  { title: 'Security tip', summary: 'Always update your password regularly and keep your contact details current.', date: 'May 20, 2026' }
+];
+
+// ── Signup ──
+router.get('/signup', (req, res) => {
+  res.render('signup', { title: 'Sign up' });
+});
+
+router.post('/signup', signupLimiter, async (req, res, next) => {
+  try {
+    const { fullName, email, phone, password, confirmPassword } = req.body;
+    if (!fullName || !email || !password || password !== confirmPassword) {
+      return res.status(400).render('signup', { title: 'Sign up', error: 'Please provide valid details and matching passwords.' });
+    }
+    const strengthErrors = validatePasswordStrength(password);
+    if (strengthErrors.length > 0) {
+      return res.status(400).render('signup', { title: 'Sign up', error: 'Password must include: ' + strengthErrors.join(', ') + '.' });
+    }
+    const exists = await SiteUser.getUserByEmail(email);
+    if (exists) return res.status(400).render('signup', { title: 'Sign up', error: 'Email already registered.' });
+
+    await SiteUser.createUser(fullName, email, phone, password);
+
+    const otp = SiteUser.generateOtp();
+    await SiteUser.createOtp(email, otp);
+    sendOtpEmail(email, otp).catch(e => console.error('Failed to send OTP email:', e));
+
+    sendNewStudentNotification({ fullName, email, phone }).catch(e => {
+      console.error('Failed to send new-student notification:', e);
+    });
+
+    res.redirect(`/verify-email?email=${encodeURIComponent(email)}`);
+  } catch (err) {
+    return res.status(503).render('signup', { title: 'Sign up', error: 'Signup service is temporarily unavailable. Please try again later.' });
+  }
+});
+
+// ── Email Verification ──
+router.get('/verify-email', (req, res) => {
+  const { email, pending } = req.query;
+  if (!email) return res.redirect('/signup');
+  res.render('verify-email', { title: 'Verify Email', email, pending, error: null, success: null });
+});
+
+router.post('/verify-email', otpLimiter, async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.render('verify-email', { title: 'Verify Email', email, error: 'Missing email or verification code.', success: null });
+    }
+    const valid = await SiteUser.verifyOtp(email, otp);
+    if (!valid) {
+      return res.render('verify-email', { title: 'Verify Email', email, error: 'Invalid or expired verification code.', success: null });
+    }
+    res.render('verify-email', { title: 'Verify Email', email, error: null, success: 'Email verified successfully! You can now log in.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/resend-otp', resendOtpLimiter, async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    const otp = await SiteUser.resendOtp(email);
+    if (!otp) return res.status(400).json({ error: 'Email not found or already verified' });
+    sendOtpEmail(email, otp).catch(e => console.error('Failed to resend OTP:', e));
+    res.json({ success: true, message: 'Verification code resent.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+function safeNext(value) {
+  if (typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/admin')) return value;
+  return null;
+}
+
+// ── Login ──
+router.get('/login', (req, res) => {
+  res.render('login', { title: 'Login', next: safeNext(req.query.next) });
+});
+
+router.post('/login', loginLimiter, async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const nextUrl = safeNext(req.body.next || req.query.next);
+    if (!email || !password) return res.status(400).render('login', { title: 'Login', error: 'Email and password required.', next: nextUrl });
+
+    // 1. Try admin authentication first
+    const admin = await User.verifyUser(email, password);
+    if (admin) {
+      if (!admin.is_active) {
+        return res.status(403).render('login', { title: 'Login', error: 'This account has been deactivated. Contact your administrator.' });
+      }
+      if (!admin.role || !['admin', 'super_admin', 'superadmin'].includes(admin.role)) {
+        return res.status(403).render('login', { title: 'Login', error: 'Your account does not have admin privileges.' });
+      }
+      req.session.regenerate(function(err) {
+        if (err) return next(err);
+        req.session.userId = admin.id;
+        req.session.adminUser = admin;
+        req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+        req.session.createdAt = Date.now();
+        res.redirect('/admin/dashboard');
+      });
+      return;
+    }
+
+    // 2. Try student authentication
+    const user = await SiteUser.verifyUser(email, password);
+    if (!user) return res.status(401).render('login', { title: 'Login', error: 'Invalid credentials.' });
+
+    if (user.googleOnly) {
+      return res.status(401).render('login', { title: 'Login', error: 'This account uses Google sign-in. Please click "Continue with Gmail" below to log in.' });
+    }
+
+    if (!user.is_verified) {
+      await SiteUser.resendOtp(email).catch(() => {});
+      return res.redirect(`/verify-email?email=${encodeURIComponent(email)}&pending=true`);
+    }
+
+    if (!user.is_active) {
+      return res.status(403).render('login', { title: 'Login', error: 'This account has been deactivated.' });
+    }
+
+    req.session.siteUser = { id: user.id, email: user.email, full_name: user.full_name };
+    req.session.userLanguage = user.language || 'en';
+    if (!req.session.csrfToken) req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+    res.redirect(nextUrl || '/');
+  } catch (err) {
+    return res.status(503).render('login', { title: 'Login', error: 'Login service is temporarily unavailable. Please try again later.' });
+  }
+});
+
+// ── Google OAuth (only if configured) ──
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && !process.env.GOOGLE_CLIENT_ID.includes('your-google-client-id')) {
+  router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+  router.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    (req, res) => {
+      if (!req.user) return res.redirect('/login');
+      req.session.siteUser = { id: req.user.id, email: req.user.email, full_name: req.user.full_name };
+      req.session.userLanguage = req.user.language || 'en';
+      if (!req.session.csrfToken) req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+      res.redirect('/');
+    }
+  );
+} else {
+  router.get('/auth/google', (req, res) => {
+    res.render('login', { title: 'Login', error: 'Google sign-in is not configured yet. Please sign in with email and password.' });
+  });
+}
+
+// ── Logout ──
+router.get('/logout', (req, res) => {
+  if (req.session) {
+    req.session.destroy(() => { res.redirect('/'); });
+  } else {
+    res.redirect('/');
+  }
+});
+
+// ── Account ──
+router.get('/account', async (req, res) => {
+  if (!req.session.siteUser) return res.redirect('/login');
+  const user = await SiteUser.getUserById(req.session.siteUser.id);
+  res.render('account', { title: 'Account Settings', user, error: null, success: null, dashboardNews: accountDashboardNews, csrfToken: req.session?.csrfToken });
+});
+
+router.post('/account/profile', csrfProtection, async (req, res, next) => {
+  try {
+    if (!req.session.siteUser) return res.redirect('/login');
+    const { fullName, phone } = req.body;
+    await SiteUser.updateProfile(req.session.siteUser.id, fullName, phone);
+    req.session.siteUser.full_name = fullName;
+    const user = await SiteUser.getUserById(req.session.siteUser.id);
+    res.render('account', { title: 'Account Settings', user, error: null, success: 'Profile updated successfully!', dashboardNews: accountDashboardNews });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/account/language', csrfProtection, async (req, res, next) => {
+  try {
+    if (!req.session.siteUser) return res.redirect('/login');
+    const { language } = req.body;
+    await SiteUser.updateLanguage(req.session.siteUser.id, language);
+    req.session.userLanguage = language;
+    const user = await SiteUser.getUserById(req.session.siteUser.id);
+    res.render('account', { title: 'Account Settings', user, error: null, success: 'Language updated successfully!', dashboardNews: accountDashboardNews });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/account/change-password', csrfProtection, async (req, res, next) => {
+  try {
+    if (!req.session.siteUser) return res.redirect('/login');
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    if (!currentPassword || !newPassword || newPassword !== confirmPassword) {
+      const user = await SiteUser.getUserById(req.session.siteUser.id);
+      return res.status(400).render('account', { title: 'Account Settings', user, error: 'Password mismatch or missing fields.', success: null, dashboardNews: accountDashboardNews });
+    }
+    const strengthErrors = validatePasswordStrength(newPassword);
+    if (strengthErrors.length > 0) {
+      const user = await SiteUser.getUserById(req.session.siteUser.id);
+      return res.status(400).render('account', { title: 'Account Settings', user, error: 'Password must include: ' + strengthErrors.join(', ') + '.', success: null, dashboardNews: accountDashboardNews });
+    }
+    const fullUser = await SiteUser.getUserByEmail(req.session.siteUser.email);
+    if (!fullUser) {
+      const user = await SiteUser.getUserById(req.session.siteUser.id);
+      return res.status(404).render('account', { title: 'Account Settings', user, error: 'User not found.', success: null, dashboardNews: accountDashboardNews });
+    }
+    if (!fullUser.password_hash) {
+      const user = await SiteUser.getUserById(req.session.siteUser.id);
+      return res.status(400).render('account', { title: 'Account Settings', user, error: 'Cannot change password for Google-linked accounts. Use Google sign-in.', success: null, dashboardNews: accountDashboardNews });
+    }
+    const verified = await SiteUser.verifyUser(fullUser.email, currentPassword);
+    if (!verified) {
+      const user = await SiteUser.getUserById(req.session.siteUser.id);
+      return res.status(401).render('account', { title: 'Account Settings', user, error: 'Current password is incorrect.', success: null, dashboardNews: accountDashboardNews });
+    }
+    await SiteUser.updatePassword(req.session.siteUser.id, newPassword);
+    const user = await SiteUser.getUserById(req.session.siteUser.id);
+    res.render('account', { title: 'Account Settings', user, error: null, success: 'Password changed successfully!', dashboardNews: accountDashboardNews });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Password Reset ──
+router.get('/forgot-password', (req, res) => {
+  res.render('forgot-password', { title: 'Forgot Password', error: null });
+});
+
+router.post('/forgot-password', forgotPasswordLimiter, async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).render('forgot-password', { title: 'Forgot Password', error: 'Email address is required.' });
+    }
+    const resetData = await SiteUser.requestPasswordReset(email);
+    if (!resetData) {
+      return res.render('forgot-password-sent', { title: 'Password Reset Sent', email, message: 'If an account exists with this email, you will receive a password reset link.' });
+    }
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    try {
+      await sendUserPasswordResetEmail(resetData.user, resetData.token, baseUrl);
+    } catch (emailErr) {
+      console.error('Failed to send password reset email:', emailErr.message);
+    }
+    res.render('forgot-password-sent', { title: 'Password Reset Sent', email, message: 'If an account exists with this email, you will receive a password reset link.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/reset-password', (req, res) => {
+  const { token } = req.query;
+  if (!token) {
+    return res.status(400).render('404', { title: 'Invalid Link', message: 'No password reset token provided.' });
+  }
+  res.render('reset-password', { title: 'Reset Password', token, error: null });
+});
+
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+    if (!token || !password || password !== confirmPassword) {
+      return res.status(400).render('reset-password', { title: 'Reset Password', token, error: 'Password mismatch or token missing.' });
+    }
+    const strengthErrors = validatePasswordStrength(password);
+    if (strengthErrors.length > 0) {
+      return res.status(400).render('reset-password', { title: 'Reset Password', token, error: 'Password must include: ' + strengthErrors.join(', ') + '.' });
+    }
+    const user = await SiteUser.resetPasswordWithToken(token, password);
+    if (!user) {
+      return res.status(400).render('404', { title: 'Invalid or Expired Link', message: 'The password reset link is invalid or has expired.' });
+    }
+    res.render('password-reset-success', { title: 'Password Reset Successful', message: 'Your password has been reset successfully. You can now login with your new password.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+module.exports = router;

@@ -1,0 +1,96 @@
+<section class="py-5">
+  <div class="container" style="max-width: 900px;">
+    <a href="/billing" class="btn btn-sm btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Back to billing</a>
+
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="checkout-summary">
+          <span class="checkout-label">Order summary</span>
+          <h1><%= payment.plan_name %></h1>
+          <div class="checkout-amount"><%= formatAmount(payment.amount, payment.currency) %></div>
+          <p class="small text-muted mb-3"><%= payment.plan_slug === 'career' ? '6 months of Pro access' : 'Subscription access' %> for <%= payment.user_name %></p>
+          <hr>
+          <div class="d-flex justify-content-between small mb-1"><span>Status</span><span class="badge <%= payment.status === 'paid' ? 'bg-success' : (payment.status === 'pending' ? 'bg-warning text-dark' : 'bg-danger') %>"><%= payment.status %></span></div>
+          <div class="d-flex justify-content-between small mb-1"><span>Reference</span><strong><%= payment.reference || 'Not submitted' %></strong></div>
+          <div class="d-flex justify-content-between small"><span>Created</span><span><%= new Date(String(payment.created_at).replace(' ', 'T') + 'Z').toLocaleDateString() %></span></div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <% if (typeof error !== 'undefined' && error) { %>
+              <div class="alert alert-danger"><%= error %></div>
+            <% } %>
+
+            <% if (payment.status === 'paid') { %>
+              <div class="text-center py-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size:48px;"></i>
+                <h2 class="h4 mt-3">Payment confirmed</h2>
+                <p class="text-muted">Your plan is active. Thank you for learning with City Building Engineering.</p>
+                <a href="/billing" class="btn btn-primary">Go to billing</a>
+              </div>
+            <% } else if (payment.status === 'failed') { %>
+              <div class="alert alert-danger">This payment could not be verified. Please contact us on WhatsApp so we can help.</div>
+              <a class="btn btn-success" href="<%= instructions.whatsapp %>?text=Hello%20City%20Building!%20My%20payment%20could%20not%20be%20verified." target="_blank" rel="noreferrer"><i class="bi bi-whatsapp"></i> Contact support</a>
+            <% } else { %>
+              <h2 class="h5 mb-3"><i class="bi bi-1-circle-fill text-primary"></i> Send the payment</h2>
+              <div class="payment-method-box">
+                <div class="payment-method-title"><i class="bi bi-phone"></i> MTN MoMo / Airtel Money</div>
+                <p class="mb-1">Send <strong><%= formatAmount(payment.amount, payment.currency) %></strong> to <strong><%= instructions.momoNumber %></strong></p>
+                <p class="small text-muted mb-0">Account name: <%= instructions.accountName %></p>
+              </div>
+              <div class="payment-method-box">
+                <div class="payment-method-title"><i class="bi bi-bank"></i> Bank transfer</div>
+                <p class="mb-1"><%= instructions.bankName %></p>
+                <p class="small text-muted mb-0"><%= instructions.bankAccount %></p>
+              </div>
+              <% if (instructions.paypal) { %>
+                <div class="payment-method-box">
+                  <div class="payment-method-title"><i class="bi bi-paypal"></i> PayPal</div>
+                  <a href="<%= instructions.paypal %>" target="_blank" rel="noreferrer">Pay with PayPal</a>
+                </div>
+              <% } %>
+
+              <h2 class="h5 mt-4 mb-3"><i class="bi bi-2-circle-fill text-primary"></i> Submit your transaction reference</h2>
+              <form method="POST" action="/billing/checkout/<%= payment.id %>/confirm" class="row g-3">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="col-md-5">
+                  <label class="form-label">Payment method</label>
+                  <select name="method" class="form-select">
+                    <option value="mobile_money">MTN MoMo</option>
+                    <option value="airtel_money">Airtel Money</option>
+                    <option value="bank_transfer">Bank transfer</option>
+                    <option value="paypal">PayPal</option>
+                  </select>
+                </div>
+                <div class="col-md-7">
+                  <label class="form-label">Transaction / reference ID</label>
+                  <input name="reference" class="form-control" placeholder="e.g. 123456789" required>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Notes (optional)</label>
+                  <textarea name="notes" class="form-control" rows="2" placeholder="Anything we should know about this payment"></textarea>
+                </div>
+                <div class="col-12">
+                  <button class="btn btn-primary w-100" type="submit"><i class="bi bi-send-check"></i> Submit payment for verification</button>
+                </div>
+              </form>
+              <p class="small text-muted mt-3 mb-0">Payments are usually verified within a few hours. You will see the status update on your billing page.</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.checkout-summary { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; padding: 24px; position: sticky; top: 90px; }
+.checkout-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--text-muted); }
+.checkout-summary h1 { font-size: 1.45rem; font-weight: 800; margin: 6px 0; }
+.checkout-amount { font-size: 2rem; font-weight: 900; color: var(--accent); margin-bottom: 6px; }
+.payment-method-box { border: 1px solid var(--border-primary); background: var(--bg-secondary); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+.payment-method-title { font-weight: 700; margin-bottom: 4px; }
+.payment-method-title i { color: var(--accent); }
+</style>

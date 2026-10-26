@@ -1,0 +1,185 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><%= title || 'Admin Panel' %> - City Building Engineering</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <style>
+    :root { --admin-sidebar: 260px; --admin-header: 64px; --admin-bg: #f4efe5; --admin-sidebar-bg: linear-gradient(180deg, #14261f 0%, #1c352a 55%, #14261f 100%); --admin-sidebar-hover: rgba(217, 119, 87, 0.14); --admin-sidebar-active: rgba(217, 119, 87, 0.2); }
+    [data-theme="light"] { --admin-bg: #f4efe5; --admin-sidebar-bg: linear-gradient(180deg, #14261f 0%, #1c352a 55%, #14261f 100%); }
+    [data-theme="dark"] { --admin-bg: #101c18; }
+    body { background: var(--admin-bg); font-family: 'Manrope', sans-serif; margin:0; }
+    .admin-body { display: flex; min-height: 100vh; }
+    .admin-header { position: fixed; top: 0; right: 0; left: var(--admin-sidebar); z-index: 1020; height: var(--admin-header); background: rgba(251,248,242,0.94); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); box-shadow: inset 0 3px 0 var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    [data-theme="dark"] .admin-header { background: rgba(27, 45, 37, 0.95); border-bottom-color: var(--border); }
+    .admin-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--admin-sidebar); background: var(--admin-sidebar-bg); z-index: 1030; display: flex; flex-direction: column; overflow-y: auto; border-right: 1px solid rgba(242, 234, 220, 0.08); }
+    .admin-sidebar-brand { padding: 16px 20px; border-bottom: 1px solid rgba(242, 234, 220, 0.1); display: flex; align-items: center; gap: 12px; }
+    .admin-sidebar-brand img { height: 38px; width: auto; border-radius: 3px 10px 3px 10px; }
+    .admin-sidebar-brand span { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 16px; color: #f2eadc; line-height: 1.2; }
+    .admin-sidebar-brand small { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; color: #d97757; letter-spacing: 0.2em; text-transform: uppercase; }
+    .admin-sidebar-user { padding: 16px 20px; border-bottom: 1px solid rgba(242, 234, 220, 0.08); display: flex; align-items: center; gap: 12px; }
+    .admin-sidebar-user .avatar { width: 40px; height: 40px; border-radius: 3px 12px 3px 12px; background: linear-gradient(135deg, #d97757, #b85a3e); display: flex; align-items: center; justify-content: center; color: #fff8ef; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+    .admin-sidebar-user .info { flex: 1; min-width: 0; }
+    .admin-sidebar-user .name { font-weight: 600; font-size: 13px; color: #f2eadc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-sidebar-user .role { font-size: 11px; color: #8ba094; text-transform: capitalize; }
+    .admin-sidebar-nav { padding: 12px 0; flex: 1; }
+    .admin-sidebar-nav .nav-section { padding: 8px 20px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #d97757; }
+    .admin-sidebar-nav .nav-item { display: flex; align-items: center; padding: 10px 20px; margin: 2px 8px; border-radius: 3px 12px 3px 12px; color: #b9c8bd; text-decoration: none; font-size: 13px; font-weight: 500; gap: 12px; }
+    .admin-sidebar-nav .nav-item:hover { background: var(--admin-sidebar-hover); color: #f2eadc; }
+    .admin-sidebar-nav .nav-item.active { background: var(--admin-sidebar-active); color: #eb9a78; font-weight: 600; box-shadow: inset 3px 0 0 #d97757; }
+    .admin-sidebar-nav .nav-item i { font-size: 16px; width: 20px; text-align: center; }
+    .admin-sidebar-footer { padding: 12px 20px; border-top: 1px solid rgba(242, 234, 220, 0.08); }
+    .admin-sidebar-footer a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 3px 10px 3px 10px; color: #b9c8bd; text-decoration: none; font-size: 13px; font-weight: 500; }
+    .admin-sidebar-footer a:hover { background: var(--admin-sidebar-hover); color: #eb9a78; }
+    .admin-main { margin-left: var(--admin-sidebar); margin-top: var(--admin-header); flex: 1; padding: 24px; min-height: calc(100vh - var(--admin-header)); }
+    .admin-header .page-title { font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600; }
+    .admin-header .header-actions { display: flex; align-items: center; gap: 16px; }
+    .admin-header .header-actions .btn-icon { width: 36px; height: 36px; border-radius: 3px 10px 3px 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 18px; position: relative; }
+    .admin-header .header-actions .btn-icon:hover { background: var(--accent-glow); border-color: var(--border-accent); color: var(--accent); }
+    [data-theme="dark"] .admin-header .header-actions .btn-icon:hover { background: var(--accent-glow); }
+    .admin-header .header-actions .btn-icon .dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--bg-surface); }
+    [data-theme="dark"] .admin-header .header-actions .btn-icon .dot { border-color: #1b2d25; }
+    .admin-header .admin-header-user { display: flex; align-items: center; gap: 10px; padding: 4px 12px 4px 4px; border-radius: 3px 10px 3px 10px; cursor: pointer; text-decoration: none; color: inherit; }
+    .admin-header .admin-header-user:hover { background: var(--accent-glow); }
+    [data-theme="dark"] .admin-header .admin-header-user:hover { background: var(--accent-glow); }
+    .admin-header .admin-header-user .avatar-sm { width: 32px; height: 32px; border-radius: 3px 9px 3px 9px; background: linear-gradient(135deg, #d97757, #b85a3e); display: flex; align-items: center; justify-content: center; color: #fff8ef; font-weight: 700; font-size: 13px; }
+    .admin-header .admin-header-user .name-sm { font-size: 13px; font-weight: 600; }
+    .admin-header .admin-header-user .role-sm { font-size: 11px; color: var(--text-muted); }
+    .stat-card-modern { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 3px 16px 3px 16px; padding: 20px; box-shadow: 6px 6px 0 var(--border-light); }
+    .stat-card-modern:hover { transform: translateY(-4px); box-shadow: 9px 9px 0 var(--border-light), 0 16px 36px rgba(0,0,0,0.1); }
+    .stat-card-modern .stat-icon { width: 48px; height: 48px; border-radius: 3px 13px 3px 13px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 16px; }
+    .stat-card-modern .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-card-modern .stat-value { font-size: 28px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; }
+    .admin-card-modern { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 3px 18px 3px 18px; padding: 24px; margin-bottom: 24px; box-shadow: 6px 6px 0 var(--border-light); }
+    .admin-card-modern .card-header-custom { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-primary); }
+    .admin-card-modern .card-header-custom h5 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+    .search-box-custom { display: flex; gap: 8px; margin-bottom: 20px; }
+    .search-box-custom input { flex: 1; padding: 10px 16px; border: 1px solid var(--border-primary); border-radius: 3px 10px 3px 10px; background: var(--bg-surface); color: var(--text-primary); font-size: 14px; }
+    .search-box-custom input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-glow); }
+    .table-custom { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .table-custom thead th { padding: 12px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); border-bottom: 2px solid var(--border-primary); background: transparent; }
+    .table-custom tbody td { padding: 14px 16px; font-size: 14px; color: var(--text-primary); border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+    .table-custom tbody tr:hover { background: var(--accent-glow); }
+    .badge-custom { padding: 4px 12px; border-radius: 3px 10px 3px 10px; font-size: 11px; font-weight: 600; }
+    .badge-custom.success { background: rgba(47,122,82,0.12); color: var(--success); }
+    .badge-custom.danger { background: rgba(184,60,60,0.12); color: var(--danger); }
+    .badge-custom.warning { background: rgba(185,137,47,0.14); color: var(--warm); }
+    .badge-custom.info { background: var(--accent-glow); color: var(--accent); }
+    .badge-custom.secondary { background: rgba(130,148,138,0.14); color: var(--text-muted); }
+    .badge-custom.primary { background: var(--accent-glow); color: var(--accent); }
+    .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .action-btns .btn-sm-custom { padding: 6px 12px; border-radius: 3px 8px 3px 8px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+    .action-btns .btn-edit-custom { background: var(--accent-glow); color: var(--accent); }
+    .action-btns .btn-edit-custom:hover { background: rgba(182,81,52,0.22); }
+    .action-btns .btn-view-custom { background: rgba(92,127,109,0.12); color: var(--info); }
+    .action-btns .btn-view-custom:hover { background: rgba(92,127,109,0.22); }
+    .action-btns .btn-delete-custom { background: rgba(184,60,60,0.1); color: var(--danger); }
+    .action-btns .btn-delete-custom:hover { background: rgba(184,60,60,0.2); }
+    .action-btns .btn-toggle-custom { background: rgba(185,137,47,0.12); color: var(--warm); }
+    .action-btns .btn-toggle-custom:hover { background: rgba(185,137,47,0.22); }
+    .pagination-custom { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 24px; }
+    .pagination-custom a, .pagination-custom span { padding: 8px 14px; border-radius: 3px 8px 3px 8px; font-size: 13px; font-weight: 500; text-decoration: none; color: var(--text-secondary); border: 1px solid var(--border-primary); }
+    .pagination-custom a:hover { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+    .pagination-custom .active { background: var(--accent); border-color: var(--accent); color: #fff8ef; }
+    .pagination-custom .disabled { opacity: 0.4; pointer-events: none; }
+    .activity-feed { list-style: none; padding: 0; margin: 0; }
+    .activity-feed li { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border-light); }
+    .activity-feed li:last-child { border-bottom: none; }
+    .activity-feed .activity-icon { width: 36px; height: 36px; border-radius: 3px 10px 3px 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .activity-feed .activity-content { flex: 1; min-width: 0; }
+    .activity-feed .activity-content .activity-text { font-size: 13px; color: var(--text-primary); }
+    .activity-feed .activity-content .activity-text strong { font-weight: 600; }
+    .activity-feed .activity-content .activity-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+    .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+    .empty-state h5 { font-family: 'Fraunces', Georgia, serif; font-size: 18px; margin-bottom: 8px; color: var(--text-secondary); }
+    .empty-state p { font-size: 14px; }
+    .user-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .user-info-item { padding: 16px; background: var(--bg-surface); border-radius: 3px 12px 3px 12px; border: 1px solid var(--border-primary); }
+    .user-info-item label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px; }
+    .user-info-item .value { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    @media (max-width: 768px) { .user-info-grid { grid-template-columns: 1fr; } .admin-sidebar { width: 100%; z-index: 1050; display: none; } .admin-sidebar.show { display: flex; } .admin-main, .admin-header { margin-left: 0; } .admin-header { left: 0; } }
+  </style>
+</head>
+<body>
+<div class="admin-body">
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-brand">
+      <img src="/images/logo.png" alt="Logo" style="height:38px;width:auto;border-radius:6px;object-fit:cover;">
+      <div><span>City Building</span><small>Admin Panel</small></div>
+    </div>
+    <div class="admin-sidebar-user">
+      <div class="avatar"><%= (adminUser?.full_name || adminUser?.username || 'A').charAt(0).toUpperCase() %></div>
+      <div class="info">
+        <div class="name"><%= adminUser?.full_name || adminUser?.username %></div>
+        <div class="role"><span class="badge badge-custom info"><%= adminUser?.role === 'superadmin' ? 'super_admin' : adminUser?.role %></span></div>
+      </div>
+    </div>
+    <nav class="admin-sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="/admin/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a href="/admin/site-users" class="nav-item <%= currentPage === 'site-users' ? 'active' : '' %>"><i class="bi bi-people"></i> Site Users</a>
+      <a href="/admin/registrations" class="nav-item <%= currentPage === 'registrations' ? 'active' : '' %>"><i class="bi bi-journal-bookmark-fill"></i> Registrations</a>
+      <a href="/admin/subscriptions" class="nav-item <%= currentPage === 'subscriptions' ? 'active' : '' %>"><i class="bi bi-credit-card"></i> Subscriptions</a>
+      <a href="/admin/enquiries" class="nav-item <%= currentPage === 'enquiries' ? 'active' : '' %>"><i class="bi bi-envelope"></i> Enquiries <% if (typeof newEnquiries !== 'undefined' && newEnquiries > 0) { %><span class="badge rounded-pill bg-danger ms-auto" style="font-size:10px;"><%= newEnquiries %></span><% } %></a>
+      <div class="nav-section" style="margin-top:8px">Content</div>
+      <a href="/admin/categories" class="nav-item <%= currentPage === 'categories' ? 'active' : '' %>"><i class="bi bi-bookmarks"></i> Categories</a>
+      <a href="/admin/courses" class="nav-item <%= currentPage === 'courses' ? 'active' : '' %>"><i class="bi bi-mortarboard"></i> Courses</a>
+      <a href="/admin/images" class="nav-item <%= currentPage === 'site-images' ? 'active' : '' %>"><i class="bi bi-images"></i> Site Images</a>
+      <a href="/admin/slides" class="nav-item <%= currentPage === 'hero-slides' ? 'active' : '' %>"><i class="bi bi-film"></i> Hero Slideshow</a>
+      <a href="/admin/testimonials" class="nav-item <%= currentPage === 'testimonials' ? 'active' : '' %>"><i class="bi bi-chat-quote"></i> Testimonials</a>
+      <a href="/admin/gallery" class="nav-item <%= currentPage === 'gallery' ? 'active' : '' %>"><i class="bi bi-images"></i> Project Gallery</a>
+      <a href="/admin/alumni" class="nav-item <%= currentPage === 'alumni' ? 'active' : '' %>"><i class="bi bi-people"></i> Alumni</a>
+      <a href="/admin/waitlist" class="nav-item <%= currentPage === 'waitlist' ? 'active' : '' %>"><i class="bi bi-bell"></i> Waitlist</a>
+      <a href="/admin/mini-course" class="nav-item <%= currentPage === 'mini-course' ? 'active' : '' %>"><i class="bi bi-envelope-open"></i> Mini-Course</a>
+      <div class="nav-section" style="margin-top:8px">System</div>
+      <a href="/admin/users" class="nav-item <%= currentPage === 'users' ? 'active' : '' %>"><i class="bi bi-shield-lock"></i> Admin Users</a>
+      <a href="/admin/activity" class="nav-item <%= currentPage === 'activity' ? 'active' : '' %>"><i class="bi bi-activity"></i> Activity Log</a>
+      <a href="/admin/settings" class="nav-item <%= currentPage === 'settings' ? 'active' : '' %>"><i class="bi bi-gear"></i> Settings</a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="/admin/logout" style="margin-bottom:4px;"><i class="bi bi-box-arrow-left"></i> Sign Out</a>
+      <a href="/" style="background:rgba(217,119,87,0.14);color:#eb9a78;"><i class="bi bi-house-door"></i> Back to Home</a>
+    </div>
+  </aside>
+  <header class="admin-header">
+    <div>
+      <button class="btn-icon" style="display:none" id="sidebarToggle" onclick="document.getElementById('adminSidebar').classList.toggle('show')"><i class="bi bi-list"></i></button>
+      <span class="page-title"><%= title || 'Dashboard' %></span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="location.href='/admin/activity'" title="Activity"><i class="bi bi-bell"></i><span class="dot"></span></button>
+      <button class="btn-icon" id="adminThemeToggle" title="Toggle theme"><i class="bi bi-moon-stars-fill"></i></button>
+      <a href="/admin/settings" class="admin-header-user">
+        <div class="avatar-sm"><%= (adminUser?.full_name || adminUser?.username || 'A').charAt(0).toUpperCase() %></div>
+        <div><div class="name-sm"><%= adminUser?.full_name || adminUser?.username %></div><div class="role-sm"><%= adminUser?.role %></div></div>
+      </a>
+    </div>
+  </header>
+  <main class="admin-main">
+    <% if (typeof success !== 'undefined' && success) { %><div class="alert alert-success alert-dismissible fade show"><%= success %><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><% } %>
+    <% if (typeof error !== 'undefined' && error) { %><div class="alert alert-danger alert-dismissible fade show"><%= error %><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><% } %>
+    <% if (typeof newEnquiries !== 'undefined' && newEnquiries > 0) { %><div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2"><i class="bi bi-envelope-open"></i> <strong><%= newEnquiries %></strong> new enquiry(ies) — <a href="/admin/enquiries" class="alert-link">view them</a><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><% } %>
+    <%- body %>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var t=document.getElementById('adminThemeToggle');
+  if(t){var h=document.documentElement,i=t.querySelector('i');t.addEventListener('click',function(){
+    var c=h.getAttribute('data-theme')||'dark',n=c==='dark'?'light':'dark';
+    h.setAttribute('data-theme',n);localStorage.setItem('citybuilding-theme',n);
+    i.className=n==='dark'?'bi bi-moon-stars-fill':'bi bi-sun-fill';
+  });}
+});
+</script>
+</body>
+</html>
