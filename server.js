@@ -91,7 +91,7 @@ app.use((req, res, next) => {
 
 app.get('/robots.txt', (req, res) => {
   const base = `${req.protocol}://${req.get('host')}`;
-  res.type('text/plain').send(`User-agent: *\nAllow: /\nSitemap: ${base}/sitemap.xml\n`);
+  res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /account/\nDisallow: /billing/\nDisallow: /login\nDisallow: /signup\nDisallow: /logout\nDisallow: /verify-otp\n\nSitemap: ${base}/sitemap.xml\n`);
 });
 
 app.get('/sitemap.xml', async (req, res, next) => {
@@ -100,10 +100,26 @@ app.get('/sitemap.xml', async (req, res, next) => {
     const [courses] = await pool.query('SELECT id, slug FROM subcourses');
     let urls = '';
     const base = `${req.protocol}://${req.get('host')}`;
-    const pages = ['', '/about', '/services', '/contact', '/certificate', '/career', '/faq', '/internship', '/pricing', '/login', '/signup'];
-    pages.forEach(p => { urls += `<url><loc>${base}${p}</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>\n`; });
-    (cats || []).forEach(c => { urls += `<url><loc>${base}/category/${c.slug}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>\n`; });
-    (courses || []).forEach(c => { urls += `<url><loc>${base}/course/${c.id}</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`; });
+    const now = new Date().toISOString();
+    const pages = [
+      { path: '', changefreq: 'weekly', priority: '1.0' },
+      { path: '/about', changefreq: 'monthly', priority: '0.9' },
+      { path: '/services', changefreq: 'monthly', priority: '0.9' },
+      { path: '/contact', changefreq: 'monthly', priority: '0.8' },
+      { path: '/certificate', changefreq: 'monthly', priority: '0.8' },
+      { path: '/career', changefreq: 'monthly', priority: '0.8' },
+      { path: '/faq', changefreq: 'monthly', priority: '0.7' },
+      { path: '/internship', changefreq: 'monthly', priority: '0.8' },
+      { path: '/pricing', changefreq: 'monthly', priority: '0.8' },
+      { path: '/gallery', changefreq: 'weekly', priority: '0.7' },
+      { path: '/alumni', changefreq: 'monthly', priority: '0.7' },
+      { path: '/quiz', changefreq: 'monthly', priority: '0.6' },
+      { path: '/free-course', changefreq: 'monthly', priority: '0.7' },
+      { path: '/verify-certificate', changefreq: 'monthly', priority: '0.6' }
+    ];
+    pages.forEach(p => { urls += `<url><loc>${base}${p.path}</loc><lastmod>${now}</lastmod><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>\n`; });
+    (cats || []).forEach(c => { if (c.slug) { urls += `<url><loc>${base}/category/${c.slug}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>\n`; } });
+    (courses || []).forEach(c => { if (c.id) { urls += `<url><loc>${base}/course/${c.id}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>\n`; } });
     res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
   } catch (err) {
     next(err);
