@@ -96,8 +96,8 @@ app.get('/robots.txt', (req, res) => {
 
 app.get('/sitemap.xml', async (req, res, next) => {
   try {
-    const [cats] = await pool.query('SELECT slug FROM categories');
-    const [courses] = await pool.query('SELECT id, slug FROM subcourses');
+    const [cats] = await pool.query('SELECT slug, created_at FROM categories');
+    const [courses] = await pool.query('SELECT id, slug, created_at FROM subcourses');
     let urls = '';
     const base = `${req.protocol}://${req.get('host')}`;
     const now = new Date().toISOString();
@@ -118,8 +118,8 @@ app.get('/sitemap.xml', async (req, res, next) => {
       { path: '/verify-certificate', changefreq: 'monthly', priority: '0.6' }
     ];
     pages.forEach(p => { urls += `<url><loc>${base}${p.path}</loc><lastmod>${now}</lastmod><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>\n`; });
-    (cats || []).forEach(c => { if (c.slug) { urls += `<url><loc>${base}/category/${c.slug}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>\n`; } });
-    (courses || []).forEach(c => { if (c.id) { urls += `<url><loc>${base}/course/${c.id}</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>\n`; } });
+    (cats || []).forEach(c => { if (c.slug) { const lm = c.created_at ? new Date(c.created_at).toISOString() : now; urls += `<url><loc>${base}/category/${c.slug}</loc><lastmod>${lm}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>\n`; } });
+    (courses || []).forEach(c => { if (c.id) { const lm = c.created_at ? new Date(c.created_at).toISOString() : now; urls += `<url><loc>${base}/course/${c.id}</loc><lastmod>${lm}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>\n`; } });
     res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
   } catch (err) {
     next(err);
