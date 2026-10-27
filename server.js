@@ -94,6 +94,10 @@ app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /account/\nDisallow: /billing/\nDisallow: /login\nDisallow: /signup\nDisallow: /logout\nDisallow: /verify-otp\n\nSitemap: ${base}/sitemap.xml\n`);
 });
 
+app.get('/google7qR302reJ6yBRijxdhL35_lYWBhNEoYYF31a_xZ8YRo.html', (req, res) => {
+  res.type('text/html').send('google-site-verification: 7qR302reJ6yBRijxdhL35_lYWBhNEoYYF31a_xZ8YRo');
+});
+
 app.get('/sitemap.xml', async (req, res, next) => {
   try {
     const [cats] = await pool.query('SELECT slug, created_at FROM categories');
