@@ -176,28 +176,7 @@
     <link rel="stylesheet" href="/css/pwa.css">
   </head>
   <body>
-    <% if (isAdminAuthenticated) { %>
-    <div class="admin-toolbar">
-      <div class="container-fluid px-2 px-lg-4 d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center gap-3">
-          <i class="bi bi-shield-lock-fill"></i>
-          <strong>Admin Panel</strong>
-          <a href="/admin/dashboard" class="text-white-50 text-decoration-none small">Dashboard</a>
-          <a href="/admin/enquiries" class="text-white-50 text-decoration-none small">Enquiries</a>
-          <a href="/admin/registrations" class="text-white-50 text-decoration-none small">Registrations</a>
-          <a href="/admin/subscriptions" class="text-white-50 text-decoration-none small">Subscriptions</a>
-          <a href="/admin/users" class="text-white-50 text-decoration-none small">Users</a>
-          <a href="/admin/categories" class="text-white-50 text-decoration-none small">Categories</a>
-          <a href="/admin/courses" class="text-white-50 text-decoration-none small">Courses</a>
-          <a href="/admin/settings" class="text-white-50 text-decoration-none small">Settings</a>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <span class="small"><%= adminUser?.full_name || adminUser?.username %></span>
-          <a href="/admin/logout" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i> Logout</a>
-        </div>
-      </div>
-    </div>
-    <% } %>
+  
     <nav class="navbar navbar-expand-xl sticky-top" id="mainNavbar">
       <div class="container-fluid px-2 px-xl-3 navbar-inner">
         <a class="navbar-brand d-flex align-items-center gap-1" href="/" aria-label="City Building Engineering Company Ltd" style="flex-shrink:0;">
