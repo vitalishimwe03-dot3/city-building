@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS subcourses (
   description TEXT,
   image VARCHAR(1024),
   sub_category VARCHAR(255),
+  price_cents INTEGER DEFAULT 0,
+  currency VARCHAR(10) DEFAULT 'RWF',
+  is_paid BOOLEAN DEFAULT false,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
