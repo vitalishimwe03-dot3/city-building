@@ -98,6 +98,52 @@ app.get('/google7qR302reJ6yBRijxdhL35_lYWBhNEoYYF31a_xZ8YRo.html', (req, res) =>
   res.type('text/html').send('google-site-verification: 7qR302reJ6yBRijxdhL35_lYWBhNEoYYF31a_xZ8YRo');
 });
 
+app.get('/9f7b3c8a2e4d6f901234567890abcdef.txt', (req, res) => {
+  res.type('text/plain').send('9f7b3c8a2e4d6f901234567890abcdef');
+});
+
+app.get('/indexnow', async (req, res) => {
+  const https = require('https');
+  const key = '9f7b3c8a2e4d6f901234567890abcdef';
+  const host = req.get('host');
+  const urls = [
+    `https://${host}/`,
+    `https://${host}/about`,
+    `https://${host}/services`,
+    `https://${host}/contact`,
+    `https://${host}/pricing`,
+    `https://${host}/certificate`,
+    `https://${host}/career`,
+    `https://${host}/faq`,
+    `https://${host}/internship`,
+    `https://${host}/gallery`,
+    `https://${host}/alumni`
+  ];
+  const data = JSON.stringify({
+    host: host,
+    key: key,
+    keyLocation: `https://${host}/${key}.txt`,
+    urlList: urls
+  });
+  const options = {
+    hostname: 'api.indexnow.org',
+    path: '/indexnow',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Length': Buffer.byteLength(data)
+    }
+  };
+  const request = https.request(options, (response) => {
+    res.json({ success: true, status: response.statusCode, urls: urls.length });
+  });
+  request.on('error', (err) => {
+    res.status(500).json({ success: false, error: err.message });
+  });
+  request.write(data);
+  request.end();
+});
+
 app.get('/sitemap.xml', async (req, res, next) => {
   try {
     const [cats] = await pool.query('SELECT slug, created_at FROM categories');
