@@ -2,21 +2,31 @@
 const nodemailer = require('nodemailer');
 
 const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : undefined;
-const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : undefined;
+let emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : undefined;
 const emailService = process.env.EMAIL_SERVICE || 'gmail';
-const emailTransport = process.env.EMAIL_TRANSPORT || emailService;
+let emailTransport = process.env.EMAIL_TRANSPORT || emailService;
 const emailHost = process.env.EMAIL_HOST;
 const emailPort = process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : undefined;
 const emailSecure = process.env.EMAIL_SECURE === 'true';
 
-const isConsoleTransport = emailTransport && emailTransport.toLowerCase() === 'console';
+const isDev = process.env.NODE_ENV !== 'production';
+
+// Fallback to console transport in dev if credentials missing or placeholder
+if (isDev) {
+  if (!emailUser || !emailPass || emailPass === '<your-gmail-app-password>' || emailPass.includes('your-')) {
+    emailTransport = 'console';
+    console.warn('[email] Using console transport in development (no valid EMAIL_PASS). OTPs will be logged to terminal.');
+  }
+}
+
+let isConsoleTransport = emailTransport && emailTransport.toLowerCase() === 'console';
 const transporterOptions = isConsoleTransport ? {
   streamTransport: true,
   newline: 'unix',
   buffer: true,
   auth: {
-    user: emailUser,
-    pass: emailPass,
+    user: emailUser || 'dev',
+    pass: emailPass || 'dev',
   },
 } : {
   auth: {
@@ -42,8 +52,16 @@ if (!isConsoleTransport) {
   }
 }
 
-if (!emailUser || !emailPass) {
+if (!isConsoleTransport && (!emailUser || !emailPass)) {
   console.error('Email transport is not configured: set EMAIL_USER and EMAIL_PASS in .env');
+  if (isDev) {
+    console.warn('[email] Falling back to console transport for development.');
+    isConsoleTransport = true;
+    transporterOptions.streamTransport = true;
+    transporterOptions.newline = 'unix';
+    transporterOptions.buffer = true;
+    transporterOptions.auth = { user: emailUser || 'dev', pass: emailPass || 'dev' };
+  }
 }
 
 const transporter = nodemailer.createTransport(transporterOptions);
@@ -65,10 +83,14 @@ async function verifyTransporter() {
   } catch (err) {
     console.error('Email transporter verification failed:', err.message || err);
     if (err.responseCode === 535 || err.message.includes('Invalid login')) {
-      console.error('Invalid SMTP credentials. Check EMAIL_USER and EMAIL_PASS, and if using Gmail use a valid App Password without spaces.');
+      console.error('Invalid SMTP credentials. Check EMAIL_USER and EMAIL_PASS, and if using Gmail use a valid App Password without spaces (no spaces).');
     }
     if (err.code === 'ENOTFOUND' || (err.message && err.message.includes('getaddrinfo'))) {
       console.error('SMTP host lookup failed. Verify internet/DNS access and that your mail host is reachable.');
+    }
+    if (isDev) {
+      console.warn('[email] Verification failed in dev; switching to console transport so OTPs are still visible in logs.');
+      isConsoleTransport = true;
     }
   }
 }
@@ -88,6 +110,19 @@ function formatEmailError(err) {
 
 async function sendMail(mailOptions) {
   if (!isConsoleTransport && (!emailUser || !emailPass)) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[email] Missing credentials, using console transport fallback for:', mailOptions.to);
+      const fallbackTransporter = nodemailer.createTransport({
+        streamTransport: true,
+        newline: 'unix',
+        buffer: true,
+      });
+      const info = await fallbackTransporter.sendMail({ ...mailOptions, from: mailOptions.from || emailUser || 'noreply@citybuilding.local' });
+      console.log('--- Console Email Output ---');
+      console.log(info.message.toString());
+      console.log('-----------------------------');
+      return info;
+    }
     throw new Error('Email transport not configured: set EMAIL_USER and EMAIL_PASS in .env');
   }
 
@@ -102,6 +137,19 @@ async function sendMail(mailOptions) {
   } catch (err) {
     const message = formatEmailError(err);
     console.error('Email send failed:', message, 'to:', mailOptions.to);
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[email] SMTP send failed in dev, falling back to console output for:', mailOptions.to);
+      try {
+        const fallbackTransporter = nodemailer.createTransport({ streamTransport: true, newline: 'unix', buffer: true });
+        const info = await fallbackTransporter.sendMail({ ...mailOptions, from: mailOptions.from || emailUser || 'noreply@citybuilding.local' });
+        console.log('--- Console Email Output (FALLBACK) ---');
+        console.log(info.message.toString());
+        console.log('----------------------------------------');
+        return info;
+      } catch (fallbackErr) {
+        console.error('[email] Fallback console transport failed:', fallbackErr.message || fallbackErr);
+      }
+    }
     throw new Error(message);
   }
 }
@@ -157,7 +205,7 @@ async function sendUserPasswordResetEmail(user, resetToken, baseUrl) {
 async function sendOtpEmail(email, otp) {
   console.log(`[DEV] OTP for ${email}: ${otp}`);
   const mailOptions = {
-    from: emailUser,
+    from: emailUser || 'citybuildingengineeringcompany@gmail.com',
     to: email,
     subject: 'Your City Building Verification Code',
     text: `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.\n\nCity Building Engineering Company Ltd`,
@@ -177,7 +225,15 @@ async function sendOtpEmail(email, otp) {
       </div>
     </div>`
   };
-  await sendMail(mailOptions);
+  try {
+    await sendMail(mailOptions);
+  } catch (err) {
+    console.error('[email] sendOtpEmail failed:', err.message || err);
+    // Don't rethrow in dev; OTP is already logged
+    if (process.env.NODE_ENV === 'production') {
+      throw err;
+    }
+  }
 }
 
 async function sendSubscriptionNotification(data) {
